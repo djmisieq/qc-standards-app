@@ -66,116 +66,12 @@ A comprehensive web application for managing Quality Control standards and check
 
 For a consistent development experience, this project is configured for GitHub Codespaces. Simply open the repository in Codespaces to get a fully configured development environment with all dependencies pre-installed.
 
-## Project Structure
+#### Codespaces Configuration
 
-```
-qc-standards-app/
-├── .github/                       # GitHub Actions workflows
-├── .devcontainer/                 # Codespaces configuration
-├── backend/                       # Python FastAPI backend
-│   ├── app/
-│   │   ├── api/                   # API endpoints
-│   │   ├── core/                  # Core settings and security
-│   │   ├── db/                    # Database models and session
-│   │   ├── models/                # Data models
-│   │   └── schemas/               # Pydantic schemas
-│   ├── alembic/                   # Database migrations
-│   ├── tests/                     # Backend tests
-│   └── requirements.txt           # Python dependencies
-├── frontend/                      # React SPA frontend
-│   ├── public/                    # Static files
-│   ├── src/
-│   │   ├── api/                   # API client
-│   │   ├── components/            # React components
-│   │   ├── context/               # React context providers
-│   │   ├── pages/                 # Page components
-│   │   ├── types/                 # TypeScript type definitions
-│   │   └── utils/                 # Utility functions
-│   └── package.json               # JavaScript dependencies
-├── templates/                     # Example QC templates
-├── nginx/                         # Nginx configuration
-└── docker-compose.yml             # Docker Compose configuration
-```
+The project now includes an improved Codespaces configuration that:
 
-## Using the Application
+1. Uses a dedicated backend service for development
+2. Provides proper Docker access via docker-outside-of-docker
+3. Automatically forwards all necessary ports
 
-### User Roles
-
-- **Admin**: Full system access, user management
-- **QC Engineer**: Create/edit templates, approve checklists
-- **Production Leader**: View templates, approve checklists
-- **QC Operator**: Execute checklists
-- **Viewer**: Read-only access to templates and checklists
-
-### Workflow
-
-1. **QC Engineer** creates a template with steps and requirements
-2. **QC Engineer** publishes the template after review
-3. **QC Operator** creates a new checklist based on the template
-4. **QC Operator** executes the checklist, providing evidence as required
-5. **Production Leader** approves or rejects the checklist
-6. **QC Engineer** analyzes results and makes improvements to templates
-
-## Offline Mode
-
-The application supports offline operation with synchronization:
-
-1. Data is cached locally using IndexedDB
-2. Changes made offline are queued for synchronization
-3. When connection is restored, data is synchronized automatically
-4. Conflicts are resolved using a Last-Write-Wins strategy
-
-## Deployment
-
-### Production Setup
-
-1. Set your production environment variables in `.env`
-2. Deploy using Docker Compose:
-   ```bash
-   docker compose up -d
-   ```
-
-3. For secure deployments, configure HTTPS using a reverse proxy like Nginx and Let's Encrypt.
-
-### Scaling
-
-For larger deployments, consider:
-- Using Docker Swarm or Kubernetes for container orchestration
-- Implementing database replication for higher availability
-- Setting up a CDN for static assets
-
-## Contributing
-
-### Development Workflow
-
-1. Create a feature branch from `develop`:
-   ```bash
-   git checkout develop
-   git pull
-   git checkout -b feature/your-feature-name
-   ```
-
-2. Make your changes and commit them:
-   ```bash
-   git add .
-   git commit -m "Your descriptive commit message"
-   ```
-
-3. Push your branch and create a Pull Request to `develop`
-4. After review and approval, the PR will be merged
-5. Release PRs merge from `develop` to `main`
-
-### Coding Standards
-
-- Backend: Follow PEP 8 style guide for Python code
-- Frontend: Use ESLint and Prettier for JavaScript/TypeScript code
-- Write tests for all new features and bug fixes
-- Use descriptive commit messages following conventional commits style
-
-## License
-
-This project is proprietary and confidential. Unauthorized copying, transferring, or reproduction of the contents of this project, via any medium, is strictly prohibited.
-
-## Contact
-
-For questions or support, please contact [your-team@example.com](mailto:your-team@example.com).
+To use this improved configuration, just start a new Codespace from the repository.
