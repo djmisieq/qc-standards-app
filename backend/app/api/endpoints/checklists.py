@@ -12,7 +12,8 @@ from app.api.deps import get_current_active_user, get_current_qc_engineer, get_c
 from app.db.session import get_db
 from app.core.config import settings
 from app.models.user import User
-from app.models.checklist import QCDoc, QCDocCreate, QCDocUpdate, QCDocRead, QCResult, QCResultCreate, QCResultRead, QCDocStatus
+from app.models.step import Step
+from app.models.checklist import QCDoc, QCDocCreate, QCDocUpdate, QCDocRead, QCResult, QCResultCreate, QCResultRead, QCDocStatus, QCResultUpdate
 
 router = APIRouter()
 
