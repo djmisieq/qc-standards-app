@@ -1,0 +1,74 @@
+name: QC Template Diff Review
+
+on:
+  pull_request:
+    paths:
+      - 'templates/**'
+
+jobs:
+  generate-diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install jsonschema jinja2 jsondiff
+      
+      - name: Generate HTML diff for modified templates
+        run: |
+          echo "Generating diffs for template changes..."
+          mkdir -p template_diffs
+          
+          # Get list of modified template files
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} -- templates/ > modified_templates.txt
+          
+          if [ -s modified_templates.txt ]; then
+            python .github/scripts/generate_template_diff.py modified_templates.txt template_diffs
+          else
+            echo "No template files were modified."
+          fi
+      
+      - name: Upload diff artifacts
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: template-diffs
+          path: template_diffs/
+      
+      - name: Post PR comment with diff links
+        if: success()
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            if (fs.existsSync('modified_templates.txt') && fs.statSync('modified_templates.txt').size > 0) {
+              const lines = fs.readFileSync('modified_templates.txt', 'utf8').trim().split('\n');
+              
+              let comment = '## QC Template Changes\n\n';
+              comment += 'The following templates were modified in this PR:\n\n';
+              
+              lines.forEach(file => {
+                const templateName = file.replace('templates/', '').replace('.json', '');
+                comment += `- **${templateName}**: [View Diff](${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID})\n`;
+              });
+              
+              comment += '\nPlease review these changes carefully. Changes to QC templates require approval from a QC Engineer.';
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }
+          
