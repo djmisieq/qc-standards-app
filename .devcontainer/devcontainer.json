@@ -1,8 +1,8 @@
 {
   "name": "QC Standards Dev Environment",
   "dockerComposeFile": "../docker-compose.dev.yml",
-  "service": "db",
-  "workspaceFolder": "/workspace",
+  "service": "backend",
+  "workspaceFolder": "/workspaces/qc-standards-app",
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
       "version": "20"
@@ -10,7 +10,7 @@
     "ghcr.io/devcontainers/features/python:1": {
       "version": "3.12"
     },
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
   },
   "forwardPorts": [8000, 5173, 5432, 6379],
   "postCreateCommand": "pip install -r backend/requirements.txt && cd frontend && npm install",
