@@ -1,0 +1,29 @@
+# API
+fastapi>=0.110.0
+uvicorn>=0.29.0
+pydantic>=2.6.0
+pydantic-settings>=2.1.0
+python-multipart>=0.0.9
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+emailvalidator>=1.0.0
+sqlalchemy>=2.0.25
+sqlmodel>=0.0.8
+alembic>=1.13.1
+psycopg2-binary>=2.9.9
+redis>=5.0.1
+pytesseract>=0.3.10
+python-dotenv>=1.0.0
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+httpx>=0.25.2
+
+# Utils
+pillow>=10.1.0
+pydantic[email]>=2.6.1
+jinja2>=3.1.2
+jsondiff>=2.0.0
+jsonschema>=4.20.0
+pytz>=2023.3
