@@ -74,4 +74,45 @@ The project now includes an improved Codespaces configuration that:
 2. Provides proper Docker access via docker-outside-of-docker
 3. Automatically forwards all necessary ports
 
-To use this improved configuration, just start a new Codespace from the repository.
+#### Using Codespaces
+
+1. Open the repository in GitHub and click on the "Code" button
+2. Select the "Codespaces" tab
+3. Click "Create codespace on main"
+
+#### Starting Services in Codespaces
+
+Once your Codespace is running:
+
+1. Start the backend server:
+   ```bash
+   cd backend
+   uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+   ```
+
+2. In a new terminal, start the frontend development server:
+   ```bash
+   cd frontend
+   npm run dev -- --host 0.0.0.0
+   ```
+
+#### Troubleshooting Codespaces
+
+If you encounter any issues:
+
+1. Check that all services are running:
+   ```bash
+   docker ps
+   ```
+
+2. View logs for specific services:
+   ```bash
+   docker logs qc-standards-app-db-1
+   docker logs qc-standards-app-redis-1
+   ```
+
+3. Ensure the database can be accessed:
+   ```bash
+   psql -h db -U postgres -d qc_standards
+   # Password: password
+   ```
