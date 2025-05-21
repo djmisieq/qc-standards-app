@@ -2,7 +2,7 @@
   "name": "QC Standards Dev Environment",
   "dockerComposeFile": "../docker-compose.dev.yml",
   "service": "backend",
-  "workspaceFolder": "/workspace",
+  "workspaceFolder": "/workspaces/qc-standards-app",
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
       "version": "20"
