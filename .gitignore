@@ -1,0 +1,73 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+.pnpm-debug.log
+
+# Environment
+.env
+.venv
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build
+dist/
+build/
+
+# Local development
+*.local
+
+# Logs
+logs
+*.log
+
+# Testing
+.coverage
+htmlcov/
+
+# Docker
+.docker/
+
+# Frontend build
+frontend/dist
+frontend/node_modules
+
+# Backend build
+backend/__pycache__/
+backend/**/__pycache__/
+
+# Photos uploaded for QC
+photos/
+
+# Local database
+*.db
+*.sqlite
