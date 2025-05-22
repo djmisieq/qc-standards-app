@@ -13,7 +13,7 @@
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
   },
   "forwardPorts": [8000, 5173, 5432, 6379],
-  "postCreateCommand": "pip install -r backend/requirements.txt && cd frontend && npm install",
+  "postCreateCommand": "chmod +x start-dev.sh quick-start.sh && pip install -r backend/requirements.txt && cd frontend && npm install && echo '🎉 Setup complete! Run ./quick-start.sh to start all services'",
   "customizations": {
     "vscode": {
       "extensions": [
