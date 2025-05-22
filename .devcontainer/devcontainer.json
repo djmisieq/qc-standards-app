@@ -13,7 +13,7 @@
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
   },
   "forwardPorts": [8000, 5173, 5432, 6379],
-  "postCreateCommand": "chmod +x start-dev.sh quick-start.sh && pip install -r backend/requirements.txt && cd frontend && npm install && echo 'alias start=\"/workspaces/qc-standards-app/quick-start.sh\"' >> ~/.bashrc && echo 'alias qc=\"/workspaces/qc-standards-app/quick-start.sh\"' >> ~/.bashrc && echo '🎉 Setup complete! Type \"start\" or \"qc\" in terminal to launch app'",
+  "postCreateCommand": "chmod +x start-dev.sh quick-start.sh bin/qc-start && pip install -r backend/requirements.txt && cd frontend && npm install && sudo ln -sf /workspaces/qc-standards-app/bin/qc-start /usr/local/bin/start && sudo ln -sf /workspaces/qc-standards-app/bin/qc-start /usr/local/bin/qc && echo '🎉 Setup complete! Type \"start\" or \"qc\" anywhere in terminal to launch app'",
   "customizations": {
     "vscode": {
       "extensions": [
