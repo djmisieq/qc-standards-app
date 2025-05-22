@@ -3,6 +3,7 @@
   "dockerComposeFile": "../docker-compose.dev.yml",
   "service": "backend",
   "workspaceFolder": "/workspaces/qc-standards-app",
+  "shutdownAction": "stopCompose",
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
       "version": "20"
@@ -13,24 +14,52 @@
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
   },
   "forwardPorts": [8000, 5173, 5432, 6379],
-  "postCreateCommand": "chmod +x start-dev.sh quick-start.sh bin/qc-start && pip install -r backend/requirements.txt && cd frontend && npm install && sudo ln -sf /workspaces/qc-standards-app/bin/qc-start /usr/local/bin/start && sudo ln -sf /workspaces/qc-standards-app/bin/qc-start /usr/local/bin/qc && echo '🎉 Setup complete! Type \"start\" or \"qc\" anywhere in terminal to launch app'",
+  "portsAttributes": {
+    "8000": {
+      "label": "Backend API",
+      "protocol": "http"
+    },
+    "5173": {
+      "label": "Frontend",
+      "protocol": "http"
+    },
+    "5432": {
+      "label": "PostgreSQL",
+      "protocol": "tcp"
+    },
+    "6379": {
+      "label": "Redis",
+      "protocol": "tcp"
+    }
+  },
+  "postCreateCommand": [
+    "bash", "-c", "set -e && echo '🔧 Setting up QC Standards App...' && cp .env.example .env && chmod +x start-dev.sh quick-start.sh bin/qc-start && echo '📦 Installing Python dependencies...' && cd backend && pip install -r requirements.txt && echo '📦 Installing Node.js dependencies...' && cd ../frontend && npm install && echo '🔗 Creating global commands...' && sudo ln -sf /workspaces/qc-standards-app/bin/qc-start /usr/local/bin/start && sudo ln -sf /workspaces/qc-standards-app/bin/qc-start /usr/local/bin/qc && echo '✅ Setup complete! Type \"start\" or \"qc\" to launch the app'"
+  ],
+  "postStartCommand": "echo '🚀 QC Standards App is ready! Type \"start\" or \"qc\" to launch the application.'",
   "customizations": {
     "vscode": {
       "extensions": [
         "ms-python.python",
         "ms-python.vscode-pylance",
+        "ms-python.black-formatter",
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
         "bradlc.vscode-tailwindcss",
-        "ms-azuretools.vscode-docker"
+        "ms-azuretools.vscode-docker",
+        "ms-vscode.vscode-typescript-next",
+        "formulahendry.auto-rename-tag",
+        "christian-kohler.path-intellisense"
       ],
       "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
         "python.linting.enabled": true,
         "python.linting.pylintEnabled": true,
+        "python.formatting.provider": "black",
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.codeActionsOnSave": {
-          "source.fixAll.eslint": true
+          "source.fixAll.eslint": true,
+          "source.organizeImports": true
         },
         "terminal.integrated.profiles.linux": {
           "bash": {
@@ -38,7 +67,13 @@
             "args": ["-l"]
           }
         },
-        "terminal.integrated.defaultProfile.linux": "bash"
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "files.exclude": {
+          "**/__pycache__": true,
+          "**/.pytest_cache": true,
+          "**/node_modules": true,
+          "**/.env": false
+        }
       }
     }
   },

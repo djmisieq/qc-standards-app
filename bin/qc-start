@@ -1,45 +1,162 @@
 #!/bin/bash
 
-# QC Standards App - Global Terminal Command
-# This script can be run from anywhere in the terminal
+# QC Standards App - Enhanced Global Terminal Command for Codespaces
+# This script can be run from anywhere in the terminal with improved error handling
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
 # Navigate to the project directory
 cd /workspaces/qc-standards-app
 
-echo "🚀 Starting QC Standards App..."
+echo -e "${GREEN}🚀 Starting QC Standards App in Codespaces...${NC}"
+echo "=================================================="
 
-# Start databases
-echo "📦 Starting databases..."
-docker-compose -f docker-compose.dev.yml up -d
+# Function to wait for service to be ready
+wait_for_service() {
+    local service_name=$1
+    local host=$2
+    local port=$3
+    local max_attempts=30
+    local attempt=1
 
-# Wait for databases to be ready
-echo "⏳ Waiting for services..."
-sleep 10
+    echo -e "${YELLOW}⏳ Waiting for $service_name to be ready...${NC}"
+    
+    while [ $attempt -le $max_attempts ]; do
+        if nc -z $host $port 2>/dev/null; then
+            echo -e "${GREEN}✅ $service_name is ready!${NC}"
+            return 0
+        fi
+        
+        if [ $((attempt % 5)) -eq 0 ]; then
+            echo "   Still waiting... ($attempt/$max_attempts)"
+        fi
+        sleep 2
+        ((attempt++))
+    done
+    
+    echo -e "${RED}❌ $service_name failed to start within expected time${NC}"
+    return 1
+}
 
-# Start backend in background
-echo "🔧 Starting backend..."
+# Function to check if a process is running
+is_process_running() {
+    local port=$1
+    lsof -ti:$port >/dev/null 2>&1
+}
+
+# Stop any existing processes
+echo -e "${YELLOW}🧹 Cleaning up existing processes...${NC}"
+if is_process_running 8000; then
+    echo "Stopping existing backend process..."
+    lsof -ti:8000 | xargs kill -9 2>/dev/null || true
+fi
+
+if is_process_running 5173; then
+    echo "Stopping existing frontend process..."
+    lsof -ti:5173 | xargs kill -9 2>/dev/null || true
+fi
+
+# Ensure .env file exists
+if [ ! -f ".env" ]; then
+    echo -e "${YELLOW}📄 Creating .env file...${NC}"
+    cp .env.example .env
+fi
+
+# Start databases with health checks
+echo -e "${YELLOW}📦 Starting database services...${NC}"
+docker-compose -f docker-compose.dev.yml up -d db redis
+
+# Wait for databases to be ready with improved error handling
+wait_for_service "PostgreSQL" "localhost" "5432" || {
+    echo -e "${RED}❌ PostgreSQL failed to start. Checking logs...${NC}"
+    docker-compose -f docker-compose.dev.yml logs db
+    exit 1
+}
+
+wait_for_service "Redis" "localhost" "6379" || {
+    echo -e "${RED}❌ Redis failed to start. Checking logs...${NC}"
+    docker-compose -f docker-compose.dev.yml logs redis
+    exit 1
+}
+
+# Start backend with better error handling
+echo -e "${YELLOW}🔧 Starting FastAPI backend...${NC}"
 cd backend
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 > /tmp/backend.log 2>&1 &
+
+# Check if requirements are installed
+if [ ! -f ".deps_installed" ]; then
+    echo -e "${YELLOW}📦 Installing Python dependencies...${NC}"
+    pip install -r requirements.txt
+    touch .deps_installed
+fi
+
+# Start backend
+nohup uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 > /tmp/backend.log 2>&1 &
 BACKEND_PID=$!
+echo "Backend PID: $BACKEND_PID"
 
-# Start frontend in background  
-echo "⚛️  Starting frontend..."
+# Start frontend with better error handling
+echo -e "${YELLOW}⚛️  Starting React frontend...${NC}"
 cd ../frontend
-npm run dev -- --host 0.0.0.0 --port 5173 > /tmp/frontend.log 2>&1 &
-FRONTEND_PID=$!
 
-# Wait for services to start
+# Check if node_modules exist
+if [ ! -d "node_modules" ]; then
+    echo -e "${YELLOW}📦 Installing Node.js dependencies...${NC}"
+    npm install
+fi
+
+# Start frontend
+nohup npm run dev -- --host 0.0.0.0 --port 5173 > /tmp/frontend.log 2>&1 &
+FRONTEND_PID=$!
+echo "Frontend PID: $FRONTEND_PID"
+
+cd ..
+
+# Wait for services to start with health checks
+echo -e "${YELLOW}⏳ Waiting for services to be ready...${NC}"
 sleep 5
 
+# Check if backend is responding
+if wait_for_service "Backend API" "localhost" "8000"; then
+    echo -e "${GREEN}✅ Backend is ready!${NC}"
+else
+    echo -e "${RED}❌ Backend failed to start. Check logs:${NC}"
+    echo "tail -f /tmp/backend.log"
+    exit 1
+fi
+
+# Check if frontend is responding
+if wait_for_service "Frontend" "localhost" "5173"; then
+    echo -e "${GREEN}✅ Frontend is ready!${NC}"
+else
+    echo -e "${RED}❌ Frontend failed to start. Check logs:${NC}"
+    echo "tail -f /tmp/frontend.log"
+    exit 1
+fi
+
 echo ""
-echo "✅ QC Standards App is running!"
-echo "🌐 Frontend: http://localhost:5173"
-echo "🔧 Backend: http://localhost:8000"
-echo "📚 API Docs: http://localhost:8000/api/docs"
+echo -e "${GREEN}🎉 QC Standards App is running successfully!${NC}"
+echo "=================================================="
+echo -e "${BLUE}🌐 Service URLs:${NC}"
+echo "   Frontend:     http://localhost:5173"
+echo "   Backend API:  http://localhost:8000"
+echo "   API Docs:     http://localhost:8000/api/docs"
 echo ""
-echo "📊 View logs:"
-echo "   Backend:  tail -f /tmp/backend.log"
-echo "   Frontend: tail -f /tmp/frontend.log"
+echo -e "${BLUE}📊 Monitor logs:${NC}"
+echo "   Backend:      tail -f /tmp/backend.log"
+echo "   Frontend:     tail -f /tmp/frontend.log"
+echo "   All services: docker-compose -f docker-compose.dev.yml logs -f"
 echo ""
-echo "🛑 To stop: docker-compose -f /workspaces/qc-standards-app/docker-compose.dev.yml down"
+echo -e "${BLUE}🛑 To stop services:${NC}"
+echo "   Quick stop:   docker-compose -f docker-compose.dev.yml down"
+echo "   Kill all:     lsof -ti:8000,5173 | xargs kill -9"
+echo ""
+echo -e "${GREEN}✨ Access your app through the forwarded ports in VS Code!${NC}"
 echo ""
