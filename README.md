@@ -2,6 +2,20 @@
 
 A comprehensive web application for managing Quality Control standards and checklists in manufacturing environments. This application digitizes and streamlines the QC process by replacing static PDF files with an interactive, version-controlled system.
 
+## 🚀 Quick Start in GitHub Codespaces
+
+**The fastest way to get started:**
+
+1. Open this repository in GitHub Codespaces
+2. Wait for the environment to initialize (2-3 minutes)
+3. Run one command in the terminal:
+
+```bash
+./quick-start.sh
+```
+
+That's it! 🎉 Your development environment will be ready in under a minute.
+
 ## Features
 
 - **Template Management**: Create, edit, and version QC templates with full revision history
@@ -33,86 +47,142 @@ A comprehensive web application for managing Quality Control standards and check
 - [GitHub Actions](https://github.com/features/actions): CI/CD workflows
 - [Nginx](https://nginx.org/): Web server and reverse proxy
 
-## Getting Started
+## Development Setup
 
-### Prerequisites
+### Option 1: GitHub Codespaces (Recommended)
+
+1. Click "Code" → "Codespaces" → "Create codespace"
+2. Wait for initialization
+3. Run: `./quick-start.sh`
+
+#### Available Scripts in Codespaces:
+
+- `./quick-start.sh` - Start all services immediately
+- `./start-dev.sh` - Start with detailed output and monitoring
+- `docker-compose -f docker-compose.dev.yml down` - Stop all services
+
+### Option 2: Local Development
+
+#### Prerequisites
 - [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/)
 - [Git](https://git-scm.com/downloads) for version control
 
-### Development Setup
+#### Setup Steps
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-organization/qc-standards-app.git
+   git clone https://github.com/djmisieq/qc-standards-app.git
    cd qc-standards-app
    ```
 
-2. Create a `.env` file from the example:
+2. Create a `.env` file:
    ```bash
    cp .env.example .env
    ```
 
-3. Start the development environment:
+3. Start the application:
    ```bash
-   docker compose -f docker-compose.dev.yml up -d
+   ./start-dev.sh
    ```
 
-4. The services will be available at:
-   - Backend API: http://localhost:8000
-   - Frontend: http://localhost:5173
-   - API Documentation: http://localhost:8000/api/docs
+#### Manual Setup (if scripts don't work)
 
-### GitHub Codespaces
+1. Start databases:
+   ```bash
+   docker-compose -f docker-compose.dev.yml up -d
+   ```
 
-For a consistent development experience, this project is configured for GitHub Codespaces. Simply open the repository in Codespaces to get a fully configured development environment with all dependencies pre-installed.
-
-#### Codespaces Configuration
-
-The project now includes an improved Codespaces configuration that:
-
-1. Uses a dedicated backend service for development
-2. Provides proper Docker access via docker-outside-of-docker
-3. Automatically forwards all necessary ports
-
-#### Using Codespaces
-
-1. Open the repository in GitHub and click on the "Code" button
-2. Select the "Codespaces" tab
-3. Click "Create codespace on main"
-
-#### Starting Services in Codespaces
-
-Once your Codespace is running:
-
-1. Start the backend server:
+2. Install and start backend:
    ```bash
    cd backend
+   pip install -r requirements.txt
    uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
    ```
 
-2. In a new terminal, start the frontend development server:
+3. In a new terminal, install and start frontend:
    ```bash
    cd frontend
+   npm install
    npm run dev -- --host 0.0.0.0
    ```
 
-#### Troubleshooting Codespaces
+## Service URLs
 
-If you encounter any issues:
+Once started, access the application at:
 
-1. Check that all services are running:
-   ```bash
-   docker ps
-   ```
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:8000
+- **API Documentation**: http://localhost:8000/api/docs
+- **Database**: postgresql://postgres:password@localhost:5432/qc_standards
+- **Redis**: redis://localhost:6379
 
-2. View logs for specific services:
-   ```bash
-   docker logs qc-standards-app-db-1
-   docker logs qc-standards-app-redis-1
-   ```
+## Troubleshooting
 
-3. Ensure the database can be accessed:
-   ```bash
-   psql -h db -U postgres -d qc_standards
-   # Password: password
-   ```
+### Quick Fixes
+
+```bash
+# Restart all services
+docker-compose -f docker-compose.dev.yml restart
+
+# View service logs
+docker-compose -f docker-compose.dev.yml logs
+
+# Clean restart
+docker-compose -f docker-compose.dev.yml down
+./quick-start.sh
+```
+
+### Database Issues
+
+```bash
+# Check database connection
+docker exec -it qc-standards-app-db-1 psql -U postgres -d qc_standards
+
+# Reset database
+docker-compose -f docker-compose.dev.yml down -v
+docker-compose -f docker-compose.dev.yml up -d
+```
+
+### Port Issues
+
+If ports are already in use:
+```bash
+# Find and kill processes using ports
+lsof -ti:8000 | xargs kill -9
+lsof -ti:5173 | xargs kill -9
+```
+
+## Project Structure
+
+```
+qc-standards-app/
+├── .devcontainer/          # Codespaces configuration
+├── .github/                # GitHub Actions workflows
+├── backend/                # Python FastAPI backend
+│   ├── app/               # Application code
+│   ├── requirements.txt   # Python dependencies
+│   └── ...
+├── frontend/              # React frontend
+│   ├── src/              # Source code
+│   ├── package.json      # Node dependencies
+│   └── ...
+├── quick-start.sh         # One-command startup
+├── start-dev.sh          # Full development startup
+├── docker-compose.dev.yml # Development containers
+└── README.md             # This file
+```
+
+## Contributing
+
+1. Create a feature branch
+2. Make your changes
+3. Test with `./quick-start.sh`
+4. Submit a pull request
+
+## License
+
+This project is proprietary and confidential.
+
+---
+
+**Happy coding! 🚀**
