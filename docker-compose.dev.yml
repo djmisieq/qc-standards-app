@@ -2,13 +2,15 @@ version: '3.8'
 
 services:
   backend:
-    image: mcr.microsoft.com/devcontainers/python:3
+    image: mcr.microsoft.com/devcontainers/python:3.12
     volumes:
       - .:/workspaces/qc-standards-app:cached
     command: sleep infinity
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
     ports:
       - "8000:8000"
     environment:
@@ -20,8 +22,11 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - DEBUG=true
-      - SECRET_KEY=devkey
-      - BACKEND_CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+      - SECRET_KEY=devkey-codespaces-2024
+      - BACKEND_CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,https://*.githubpreview.dev,https://*.github.dev
+      - ENVIRONMENT=development
+    networks:
+      - qc-network
 
   db:
     image: postgres:16-alpine
@@ -31,21 +36,42 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=qc_standards
+      - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U postgres -d qc_standards"]
+      interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - qc-network
 
   redis:
-    image: redis:alpine
+    image: redis:7-alpine
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - qc-network
 
 volumes:
   postgres_data:
+    driver: local
   redis_data:
+    driver: local
+
+networks:
+  qc-network:
+    driver: bridge
