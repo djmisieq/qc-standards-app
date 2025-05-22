@@ -2,19 +2,27 @@
 
 A comprehensive web application for managing Quality Control standards and checklists in manufacturing environments. This application digitizes and streamlines the QC process by replacing static PDF files with an interactive, version-controlled system.
 
-## 🚀 Quick Start in GitHub Codespaces
+## 🚀 **One-Command Startup in GitHub Codespaces**
 
-**The fastest way to get started:**
+**The absolute fastest way to get started:**
 
 1. Open this repository in GitHub Codespaces
-2. Wait for the environment to initialize (2-3 minutes)
-3. Run one command in the terminal:
+2. Wait for initialization (2-3 minutes)
+3. Type **ONE command** in the terminal:
 
 ```bash
-./quick-start.sh
+start
 ```
 
-That's it! 🎉 Your development environment will be ready in under a minute.
+**or**
+
+```bash
+qc
+```
+
+**That's it!** 🎉 Your entire development environment launches automatically!
+
+---
 
 ## Features
 
@@ -47,21 +55,20 @@ That's it! 🎉 Your development environment will be ready in under a minute.
 - [GitHub Actions](https://github.com/features/actions): CI/CD workflows
 - [Nginx](https://nginx.org/): Web server and reverse proxy
 
-## Development Setup
+## Development Setup Options
 
-### Option 1: GitHub Codespaces (Recommended)
+### 🥇 **Option 1: GitHub Codespaces (Recommended)**
 
+**Super Simple:**
 1. Click "Code" → "Codespaces" → "Create codespace"
 2. Wait for initialization
-3. Run: `./quick-start.sh`
+3. Type: `start` or `qc`
 
-#### Available Scripts in Codespaces:
+**Commands available everywhere in terminal:**
+- `start` - Launch entire application
+- `qc` - Same as start (shorter alias)
 
-- `./quick-start.sh` - Start all services immediately
-- `./start-dev.sh` - Start with detailed output and monitoring
-- `docker-compose -f docker-compose.dev.yml down` - Stop all services
-
-### Option 2: Local Development
+### 🥈 **Option 2: Local Development**
 
 #### Prerequisites
 - [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/)
@@ -69,19 +76,10 @@ That's it! 🎉 Your development environment will be ready in under a minute.
 
 #### Setup Steps
 
-1. Clone the repository:
+1. Clone and start:
    ```bash
    git clone https://github.com/djmisieq/qc-standards-app.git
    cd qc-standards-app
-   ```
-
-2. Create a `.env` file:
-   ```bash
-   cp .env.example .env
-   ```
-
-3. Start the application:
-   ```bash
    ./start-dev.sh
    ```
 
@@ -92,34 +90,52 @@ That's it! 🎉 Your development environment will be ready in under a minute.
    docker-compose -f docker-compose.dev.yml up -d
    ```
 
-2. Install and start backend:
+2. Start backend:
    ```bash
    cd backend
    pip install -r requirements.txt
    uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
    ```
 
-3. In a new terminal, install and start frontend:
+3. Start frontend (new terminal):
    ```bash
    cd frontend
    npm install
    npm run dev -- --host 0.0.0.0
    ```
 
-## Service URLs
+## 🌐 Service URLs
 
 Once started, access the application at:
 
-- **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:8000
-- **API Documentation**: http://localhost:8000/api/docs
-- **Database**: postgresql://postgres:password@localhost:5432/qc_standards
-- **Redis**: redis://localhost:6379
+- **🎯 Frontend**: http://localhost:5173
+- **🔧 Backend API**: http://localhost:8000
+- **📚 API Docs**: http://localhost:8000/api/docs
+- **🐘 Database**: postgresql://postgres:password@localhost:5432/qc_standards
+- **🔴 Redis**: redis://localhost:6379
 
-## Troubleshooting
+## 🛠️ Available Commands
+
+### In Codespaces Terminal:
+```bash
+start    # Launch entire application
+qc       # Same as start (shorter)
+```
+
+### Alternative methods:
+```bash
+./quick-start.sh    # Direct script execution
+./start-dev.sh      # Detailed startup with monitoring
+```
+
+### Stop services:
+```bash
+docker-compose -f docker-compose.dev.yml down
+```
+
+## 🐛 Troubleshooting
 
 ### Quick Fixes
-
 ```bash
 # Restart all services
 docker-compose -f docker-compose.dev.yml restart
@@ -129,60 +145,54 @@ docker-compose -f docker-compose.dev.yml logs
 
 # Clean restart
 docker-compose -f docker-compose.dev.yml down
-./quick-start.sh
+start  # or qc
 ```
 
 ### Database Issues
-
 ```bash
 # Check database connection
 docker exec -it qc-standards-app-db-1 psql -U postgres -d qc_standards
 
 # Reset database
 docker-compose -f docker-compose.dev.yml down -v
-docker-compose -f docker-compose.dev.yml up -d
+start  # This will restart everything fresh
 ```
 
 ### Port Issues
-
-If ports are already in use:
 ```bash
 # Find and kill processes using ports
 lsof -ti:8000 | xargs kill -9
 lsof -ti:5173 | xargs kill -9
+start  # Restart after clearing ports
 ```
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 qc-standards-app/
 ├── .devcontainer/          # Codespaces configuration
 ├── .github/                # GitHub Actions workflows
 ├── backend/                # Python FastAPI backend
-│   ├── app/               # Application code
-│   ├── requirements.txt   # Python dependencies
-│   └── ...
-├── frontend/              # React frontend
-│   ├── src/              # Source code
-│   ├── package.json      # Node dependencies
-│   └── ...
-├── quick-start.sh         # One-command startup
+├── frontend/               # React frontend
+├── bin/                   # Global command scripts
+│   └── qc-start          # Global terminal command
 ├── start-dev.sh          # Full development startup
+├── quick-start.sh        # Fast startup script
 ├── docker-compose.dev.yml # Development containers
 └── README.md             # This file
 ```
 
-## Contributing
+## 🤝 Contributing
 
 1. Create a feature branch
 2. Make your changes
-3. Test with `./quick-start.sh`
+3. Test with `start` command
 4. Submit a pull request
 
-## License
+## 📄 License
 
 This project is proprietary and confidential.
 
 ---
 
-**Happy coding! 🚀**
+**🚀 Happy coding! Just type `start` and you're ready to go!**
