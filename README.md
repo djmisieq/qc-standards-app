@@ -2,6 +2,28 @@
 
 A comprehensive web application for managing Quality Control standards and checklists in manufacturing environments. This application digitizes and streamlines the QC process by replacing static PDF files with an interactive, version-controlled system.
 
+## 🚀 **One-Command Startup in GitHub Codespaces**
+
+**The absolute fastest way to get started:**
+
+1. Open this repository in GitHub Codespaces
+2. Wait for initialization (2-3 minutes)
+3. Type **ONE command** in the terminal:
+
+```bash
+start
+```
+
+**or**
+
+```bash
+qc
+```
+
+**That's it!** 🎉 Your entire development environment launches automatically!
+
+---
+
 ## Features
 
 - **Template Management**: Create, edit, and version QC templates with full revision history
@@ -33,86 +55,144 @@ A comprehensive web application for managing Quality Control standards and check
 - [GitHub Actions](https://github.com/features/actions): CI/CD workflows
 - [Nginx](https://nginx.org/): Web server and reverse proxy
 
-## Getting Started
+## Development Setup Options
 
-### Prerequisites
+### 🥇 **Option 1: GitHub Codespaces (Recommended)**
+
+**Super Simple:**
+1. Click "Code" → "Codespaces" → "Create codespace"
+2. Wait for initialization
+3. Type: `start` or `qc`
+
+**Commands available everywhere in terminal:**
+- `start` - Launch entire application
+- `qc` - Same as start (shorter alias)
+
+### 🥈 **Option 2: Local Development**
+
+#### Prerequisites
 - [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/)
 - [Git](https://git-scm.com/downloads) for version control
 
-### Development Setup
+#### Setup Steps
 
-1. Clone the repository:
+1. Clone and start:
    ```bash
-   git clone https://github.com/your-organization/qc-standards-app.git
+   git clone https://github.com/djmisieq/qc-standards-app.git
    cd qc-standards-app
+   ./start-dev.sh
    ```
 
-2. Create a `.env` file from the example:
+#### Manual Setup (if scripts don't work)
+
+1. Start databases:
    ```bash
-   cp .env.example .env
+   docker-compose -f docker-compose.dev.yml up -d
    ```
 
-3. Start the development environment:
-   ```bash
-   docker compose -f docker-compose.dev.yml up -d
-   ```
-
-4. The services will be available at:
-   - Backend API: http://localhost:8000
-   - Frontend: http://localhost:5173
-   - API Documentation: http://localhost:8000/api/docs
-
-### GitHub Codespaces
-
-For a consistent development experience, this project is configured for GitHub Codespaces. Simply open the repository in Codespaces to get a fully configured development environment with all dependencies pre-installed.
-
-#### Codespaces Configuration
-
-The project now includes an improved Codespaces configuration that:
-
-1. Uses a dedicated backend service for development
-2. Provides proper Docker access via docker-outside-of-docker
-3. Automatically forwards all necessary ports
-
-#### Using Codespaces
-
-1. Open the repository in GitHub and click on the "Code" button
-2. Select the "Codespaces" tab
-3. Click "Create codespace on main"
-
-#### Starting Services in Codespaces
-
-Once your Codespace is running:
-
-1. Start the backend server:
+2. Start backend:
    ```bash
    cd backend
+   pip install -r requirements.txt
    uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
    ```
 
-2. In a new terminal, start the frontend development server:
+3. Start frontend (new terminal):
    ```bash
    cd frontend
+   npm install
    npm run dev -- --host 0.0.0.0
    ```
 
-#### Troubleshooting Codespaces
+## 🌐 Service URLs
 
-If you encounter any issues:
+Once started, access the application at:
 
-1. Check that all services are running:
-   ```bash
-   docker ps
-   ```
+- **🎯 Frontend**: http://localhost:5173
+- **🔧 Backend API**: http://localhost:8000
+- **📚 API Docs**: http://localhost:8000/api/docs
+- **🐘 Database**: postgresql://postgres:password@localhost:5432/qc_standards
+- **🔴 Redis**: redis://localhost:6379
 
-2. View logs for specific services:
-   ```bash
-   docker logs qc-standards-app-db-1
-   docker logs qc-standards-app-redis-1
-   ```
+## 🛠️ Available Commands
 
-3. Ensure the database can be accessed:
-   ```bash
-   psql -h db -U postgres -d qc_standards
-   # Password: password
-   ```
+### In Codespaces Terminal:
+```bash
+start    # Launch entire application
+qc       # Same as start (shorter)
+```
+
+### Alternative methods:
+```bash
+./quick-start.sh    # Direct script execution
+./start-dev.sh      # Detailed startup with monitoring
+```
+
+### Stop services:
+```bash
+docker-compose -f docker-compose.dev.yml down
+```
+
+## 🐛 Troubleshooting
+
+### Quick Fixes
+```bash
+# Restart all services
+docker-compose -f docker-compose.dev.yml restart
+
+# View service logs
+docker-compose -f docker-compose.dev.yml logs
+
+# Clean restart
+docker-compose -f docker-compose.dev.yml down
+start  # or qc
+```
+
+### Database Issues
+```bash
+# Check database connection
+docker exec -it qc-standards-app-db-1 psql -U postgres -d qc_standards
+
+# Reset database
+docker-compose -f docker-compose.dev.yml down -v
+start  # This will restart everything fresh
+```
+
+### Port Issues
+```bash
+# Find and kill processes using ports
+lsof -ti:8000 | xargs kill -9
+lsof -ti:5173 | xargs kill -9
+start  # Restart after clearing ports
+```
+
+## 📁 Project Structure
+
+```
+qc-standards-app/
+├── .devcontainer/          # Codespaces configuration
+├── .github/                # GitHub Actions workflows
+├── backend/                # Python FastAPI backend
+├── frontend/               # React frontend
+├── bin/                   # Global command scripts
+│   └── qc-start          # Global terminal command
+├── start-dev.sh          # Full development startup
+├── quick-start.sh        # Fast startup script
+├── docker-compose.dev.yml # Development containers
+└── README.md             # This file
+```
+
+## 🤝 Contributing
+
+1. Create a feature branch
+2. Make your changes
+3. Test with `start` command
+4. Submit a pull request
+
+## 📄 License
+
+This project is proprietary and confidential.
+
+---
+
+**🚀 Happy coding! Just type `start` and you're ready to go!**

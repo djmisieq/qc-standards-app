@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# QC Standards App - Global Terminal Command
+# This script can be run from anywhere in the terminal
+
+# Navigate to the project directory
+cd /workspaces/qc-standards-app
+
+echo "🚀 Starting QC Standards App..."
+
+# Start databases
+echo "📦 Starting databases..."
+docker-compose -f docker-compose.dev.yml up -d
+
+# Wait for databases to be ready
+echo "⏳ Waiting for services..."
+sleep 10
+
+# Start backend in background
+echo "🔧 Starting backend..."
+cd backend
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 > /tmp/backend.log 2>&1 &
+BACKEND_PID=$!
+
+# Start frontend in background  
+echo "⚛️  Starting frontend..."
+cd ../frontend
+npm run dev -- --host 0.0.0.0 --port 5173 > /tmp/frontend.log 2>&1 &
+FRONTEND_PID=$!
+
+# Wait for services to start
+sleep 5
+
+echo ""
+echo "✅ QC Standards App is running!"
+echo "🌐 Frontend: http://localhost:5173"
+echo "🔧 Backend: http://localhost:8000"
+echo "📚 API Docs: http://localhost:8000/api/docs"
+echo ""
+echo "📊 View logs:"
+echo "   Backend:  tail -f /tmp/backend.log"
+echo "   Frontend: tail -f /tmp/frontend.log"
+echo ""
+echo "🛑 To stop: docker-compose -f /workspaces/qc-standards-app/docker-compose.dev.yml down"
+echo ""

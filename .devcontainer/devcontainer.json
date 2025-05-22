@@ -13,7 +13,7 @@
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
   },
   "forwardPorts": [8000, 5173, 5432, 6379],
-  "postCreateCommand": "pip install -r backend/requirements.txt && cd frontend && npm install",
+  "postCreateCommand": "chmod +x start-dev.sh quick-start.sh bin/qc-start && pip install -r backend/requirements.txt && cd frontend && npm install && sudo ln -sf /workspaces/qc-standards-app/bin/qc-start /usr/local/bin/start && sudo ln -sf /workspaces/qc-standards-app/bin/qc-start /usr/local/bin/qc && echo '🎉 Setup complete! Type \"start\" or \"qc\" anywhere in terminal to launch app'",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -31,7 +31,14 @@
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.codeActionsOnSave": {
           "source.fixAll.eslint": true
-        }
+        },
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "/bin/bash",
+            "args": ["-l"]
+          }
+        },
+        "terminal.integrated.defaultProfile.linux": "bash"
       }
     }
   },
