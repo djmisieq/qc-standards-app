@@ -1,337 +1,218 @@
-import { Fragment, useState } from 'react'
-import { Outlet, Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { Dialog, Menu, Transition } from '@headlessui/react'
-import { 
-  Bars3Icon, 
-  XMarkIcon,
-  ClipboardDocumentListIcon,
-  DocumentDuplicateIcon,
-  UserIcon,
-  UsersIcon,
-  WifiIcon,
-  ChartBarIcon,
-  CloudIcon,
-} from '@heroicons/react/24/outline'
-import { useAuth } from '../context/AuthContext'
-import { useOffline } from '../context/OfflineContext'
+import React, { useState } from 'react';
+import { Outlet, Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useOffline } from '../context/OfflineContext';
 
-function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ')
-}
-
-const navigation = [
-  { name: 'Dashboard', href: '/', icon: ChartBarIcon },
-  { name: 'Templates', href: '/templates', icon: DocumentDuplicateIcon },
-  { name: 'Checklists', href: '/checklists', icon: ClipboardDocumentListIcon },
-]
-
-// Admin-only navigation
-const adminNavigation = [
-  { name: 'Users', href: '/admin', icon: UsersIcon },
-]
-
-export default function MainLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const location = useLocation()
-  const navigate = useNavigate()
-  const { user, logout } = useAuth()
-  const { isOnline, pendingSyncCount, syncData } = useOffline()
+const MainLayout: React.FC = () => {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const { isOnline } = useOffline();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
+    logout();
+    navigate('/login');
+  };
 
-  const handleSync = async () => {
-    try {
-      await syncData()
-    } catch (error) {
-      console.error('Sync error:', error)
-    }
-  }
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
 
   return (
-    <div className="h-full">
-      <Transition.Root show={sidebarOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-50 lg:hidden" onClose={setSidebarOpen}>
-          <Transition.Child
-            as={Fragment}
-            enter="transition-opacity ease-linear duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="transition-opacity ease-linear duration-300"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-gray-900/80" />
-          </Transition.Child>
-
-          <div className="fixed inset-0 flex">
-            <Transition.Child
-              as={Fragment}
-              enter="transition ease-in-out duration-300 transform"
-              enterFrom="-translate-x-full"
-              enterTo="translate-x-0"
-              leave="transition ease-in-out duration-300 transform"
-              leaveFrom="translate-x-0"
-              leaveTo="-translate-x-full"
-            >
-              <Dialog.Panel className="relative mr-16 flex w-full max-w-xs flex-1">
-                <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4">
-                  <div className="flex h-16 shrink-0 items-center">
-                    <img
-                      className="h-8 w-auto"
-                      src="/logo.svg"
-                      alt="QC Standards"
-                    />
-                  </div>
-                  <nav className="flex flex-1 flex-col">
-                    <ul role="list" className="flex flex-1 flex-col gap-y-7">
-                      <li>
-                        <ul role="list" className="-mx-2 space-y-1">
-                          {navigation.map((item) => (
-                            <li key={item.name}>
-                              <NavLink
-                                to={item.href}
-                                end={item.href === '/'}
-                                className={({ isActive }) => classNames(
-                                  isActive
-                                    ? 'bg-gray-50 text-primary-600'
-                                    : 'text-gray-700 hover:bg-gray-50 hover:text-primary-600',
-                                  'group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6'
-                                )}
-                              >
-                                <item.icon
-                                  className="h-6 w-6 shrink-0"
-                                  aria-hidden="true"
-                                />
-                                {item.name}
-                              </NavLink>
-                            </li>
-                          ))}
-                        </ul>
-                      </li>
-                      {user && user.role === 'admin' && (
-                        <li>
-                          <div className="text-xs font-semibold leading-6 text-gray-400">Administration</div>
-                          <ul role="list" className="-mx-2 mt-2 space-y-1">
-                            {adminNavigation.map((item) => (
-                              <li key={item.name}>
-                                <NavLink
-                                  to={item.href}
-                                  className={({ isActive }) => classNames(
-                                    isActive
-                                      ? 'bg-gray-50 text-primary-600'
-                                      : 'text-gray-700 hover:bg-gray-50 hover:text-primary-600',
-                                    'group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6'
-                                  )}
-                                >
-                                  <item.icon
-                                    className="h-6 w-6 shrink-0"
-                                    aria-hidden="true"
-                                  />
-                                  {item.name}
-                                </NavLink>
-                              </li>
-                            ))}
-                          </ul>
-                        </li>
-                      )}
-                    </ul>
-                  </nav>
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
-        </Dialog>
-      </Transition.Root>
-
-      {/* Static sidebar for desktop */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 pb-4">
-          <div className="flex h-16 shrink-0 items-center">
-            <img
-              className="h-8 w-auto"
-              src="/logo.svg"
-              alt="QC Standards"
-            />
-          </div>
-          <nav className="flex flex-1 flex-col">
-            <ul role="list" className="flex flex-1 flex-col gap-y-7">
-              <li>
-                <ul role="list" className="-mx-2 space-y-1">
-                  {navigation.map((item) => (
-                    <li key={item.name}>
-                      <NavLink
-                        to={item.href}
-                        end={item.href === '/'}
-                        className={({ isActive }) => classNames(
-                          isActive
-                            ? 'bg-gray-50 text-primary-600'
-                            : 'text-gray-700 hover:bg-gray-50 hover:text-primary-600',
-                          'group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6'
-                        )}
-                      >
-                        <item.icon
-                          className="h-6 w-6 shrink-0"
-                          aria-hidden="true"
-                        />
-                        {item.name}
-                      </NavLink>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-              {user && user.role === 'admin' && (
-                <li>
-                  <div className="text-xs font-semibold leading-6 text-gray-400">Administration</div>
-                  <ul role="list" className="-mx-2 mt-2 space-y-1">
-                    {adminNavigation.map((item) => (
-                      <li key={item.name}>
-                        <NavLink
-                          to={item.href}
-                          className={({ isActive }) => classNames(
-                            isActive
-                              ? 'bg-gray-50 text-primary-600'
-                              : 'text-gray-700 hover:bg-gray-50 hover:text-primary-600',
-                            'group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6'
-                          )}
-                        >
-                          <item.icon
-                            className="h-6 w-6 shrink-0"
-                            aria-hidden="true"
-                          />
-                          {item.name}
-                        </NavLink>
-                      </li>
-                    ))}
-                  </ul>
-                </li>
-              )}
-              <li className="mt-auto">
-                <button
-                  onClick={handleSync}
-                  className="group -mx-2 flex items-center gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700 hover:bg-gray-50 hover:text-primary-600"
+    <div className="min-h-screen bg-gray-50">
+      {/* Top navigation */}
+      <nav className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex">
+              <div className="flex-shrink-0 flex items-center">
+                <img
+                  className="h-8 w-auto"
+                  src="/logo.png"
+                  alt="QC Standards"
+                />
+              </div>
+              <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+                <Link
+                  to="/"
+                  className="border-blue-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
                 >
-                  <CloudIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
-                  Sync Data
-                  {pendingSyncCount > 0 && (
-                    <span className="ml-auto rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-800">
-                      {pendingSyncCount}
-                    </span>
-                  )}
-                </button>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </div>
-
-      <div className="lg:pl-72">
-        <div className="sticky top-0 z-40 lg:mx-auto lg:max-w-7xl lg:px-8">
-          <div className="flex h-16 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-0 lg:shadow-none">
-            <button
-              type="button"
-              className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
-              onClick={() => setSidebarOpen(true)}
-            >
-              <span className="sr-only">Open sidebar</span>
-              <Bars3Icon className="h-6 w-6" aria-hidden="true" />
-            </button>
-
-            {/* Network status indicator */}
-            <div className="flex items-center gap-x-1.5">
-              <div
-                className={classNames(
-                  isOnline ? 'bg-green-400' : 'bg-red-400',
-                  'flex-none rounded-full p-1'
+                  Dashboard
+                </Link>
+                <Link
+                  to="/templates"
+                  className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                >
+                  Templates
+                </Link>
+                <Link
+                  to="/checklists"
+                  className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                >
+                  Checklists
+                </Link>
+                {user?.is_admin && (
+                  <Link
+                    to="/admin"
+                    className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                  >
+                    Admin
+                  </Link>
                 )}
-              >
-                <div className="h-1.5 w-1.5 rounded-full bg-current" />
               </div>
-              <p className="text-xs leading-5 text-gray-600">
-                {isOnline ? 'Online' : 'Offline'}
-              </p>
             </div>
-
-            <div className="flex flex-1 justify-end gap-x-4 self-stretch lg:gap-x-6">
-              <div className="flex items-center gap-x-4 lg:gap-x-6">
-                {/* Pending sync indicator */}
-                {pendingSyncCount > 0 && (
+            <div className="hidden sm:ml-6 sm:flex sm:items-center">
+              {/* Offline indicator */}
+              {!isOnline && (
+                <div className="mr-4 px-2 py-1 bg-yellow-100 text-yellow-800 rounded-md text-xs font-medium">
+                  Offline
+                </div>
+              )}
+              
+              {/* Profile dropdown */}
+              <div className="ml-3 relative">
+                <div className="flex items-center">
+                  <span className="text-sm font-medium text-gray-700 mr-2">
+                    {user?.name || 'User'}
+                  </span>
                   <button
-                    type="button"
-                    className="relative p-1.5 text-gray-400 hover:text-gray-500"
-                    onClick={handleSync}
+                    className="bg-white rounded-full flex text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    onClick={() => navigate('/profile')}
                   >
-                    <span className="sr-only">Sync data</span>
-                    <CloudIcon className="h-6 w-6" aria-hidden="true" />
-                    <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white">
-                      {pendingSyncCount}
-                    </span>
-                  </button>
-                )}
-
-                {/* Profile dropdown */}
-                <Menu as="div" className="relative">
-                  <Menu.Button className="-m-1.5 flex items-center p-1.5">
                     <span className="sr-only">Open user menu</span>
-                    <UserIcon className="h-8 w-8 rounded-full bg-gray-50 p-1 text-gray-600" aria-hidden="true" />
-                    <span className="hidden lg:flex lg:items-center">
-                      <span className="ml-4 text-sm font-semibold leading-6 text-gray-900" aria-hidden="true">
-                        {user?.full_name || user?.username}
-                      </span>
-                    </span>
-                  </Menu.Button>
-                  <Transition
-                    as={Fragment}
-                    enter="transition ease-out duration-100"
-                    enterFrom="transform opacity-0 scale-95"
-                    enterTo="transform opacity-100 scale-100"
-                    leave="transition ease-in duration-75"
-                    leaveFrom="transform opacity-100 scale-100"
-                    leaveTo="transform opacity-0 scale-95"
-                  >
-                    <Menu.Items className="absolute right-0 z-10 mt-2.5 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
-                      <Menu.Item>
-                        {({ active }) => (
-                          <Link
-                            to="/profile"
-                            className={classNames(
-                              active ? 'bg-gray-50' : '',
-                              'block px-3 py-1 text-sm leading-6 text-gray-900'
-                            )}
-                          >
-                            Profile
-                          </Link>
-                        )}
-                      </Menu.Item>
-                      <Menu.Item>
-                        {({ active }) => (
-                          <button
-                            onClick={handleLogout}
-                            className={classNames(
-                              active ? 'bg-gray-50' : '',
-                              'block w-full text-left px-3 py-1 text-sm leading-6 text-gray-900'
-                            )}
-                          >
-                            Sign out
-                          </button>
-                        )}
-                      </Menu.Item>
-                    </Menu.Items>
-                  </Transition>
-                </Menu>
+                    <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600">
+                      {user?.name?.charAt(0) || 'U'}
+                    </div>
+                  </button>
+                </div>
               </div>
+              
+              {/* Logout button */}
+              <button
+                onClick={handleLogout}
+                className="ml-4 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md"
+              >
+                Logout
+              </button>
+            </div>
+            
+            {/* Mobile menu button */}
+            <div className="flex items-center sm:hidden">
+              <button
+                onClick={toggleMobileMenu}
+                className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                aria-expanded="false"
+              >
+                <span className="sr-only">Open main menu</span>
+                <svg
+                  className={`${isMobileMenuOpen ? 'hidden' : 'block'} h-6 w-6`}
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+                <svg
+                  className={`${isMobileMenuOpen ? 'block' : 'hidden'} h-6 w-6`}
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
             </div>
           </div>
         </div>
 
-        <main className="py-10">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <Outlet />
+        {/* Mobile menu */}
+        <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} sm:hidden`}>
+          <div className="pt-2 pb-3 space-y-1">
+            <Link
+              to="/"
+              className="bg-blue-50 border-blue-500 text-blue-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Dashboard
+            </Link>
+            <Link
+              to="/templates"
+              className="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Templates
+            </Link>
+            <Link
+              to="/checklists"
+              className="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Checklists
+            </Link>
+            {user?.is_admin && (
+              <Link
+                to="/admin"
+                className="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Admin
+              </Link>
+            )}
           </div>
-        </main>
-      </div>
+          <div className="pt-4 pb-3 border-t border-gray-200">
+            <div className="flex items-center px-4">
+              <div className="flex-shrink-0">
+                <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600">
+                  {user?.name?.charAt(0) || 'U'}
+                </div>
+              </div>
+              <div className="ml-3">
+                <div className="text-base font-medium text-gray-800">{user?.name || 'User'}</div>
+                <div className="text-sm font-medium text-gray-500">{user?.email || ''}</div>
+              </div>
+            </div>
+            <div className="mt-3 space-y-1">
+              <Link
+                to="/profile"
+                className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Your Profile
+              </Link>
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Main content */}
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <Outlet />
+      </main>
     </div>
-  )
-}
+  );
+};
+
+export default MainLayout;
