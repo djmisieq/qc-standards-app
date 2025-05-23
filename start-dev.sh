@@ -81,7 +81,7 @@ fi
 if [ ! -d "frontend/node_modules" ]; then
     echo -e "${YELLOW}📦 Installing frontend dependencies...${NC}"
     cd frontend
-    npm install
+    npm install jwt-decode react-router-dom axios swr
     cd ..
     echo -e "${GREEN}✅ Frontend dependencies installed${NC}"
 fi
@@ -91,6 +91,14 @@ if [ ! -f ".env" ]; then
     echo -e "${YELLOW}⚙️  Creating .env file...${NC}"
     cp .env.example .env
     echo -e "${GREEN}✅ .env file created${NC}"
+fi
+
+# Create logo.png if it doesn't exist
+if [ ! -f "frontend/public/logo.png" ]; then
+    echo -e "${YELLOW}⚙️  Creating placeholder logo.png...${NC}"
+    mkdir -p frontend/public
+    touch frontend/public/logo.png
+    echo -e "${GREEN}✅ logo.png placeholder created${NC}"
 fi
 
 # Function to start backend in background
@@ -121,14 +129,17 @@ start_frontend
 # Wait a moment for services to initialize
 sleep 5
 
+# Get the codespace name from environment or URL
+CODESPACE_NAME=$(echo "$CODESPACE_NAME" || hostname)
+
 # Display service information
 echo ""
 echo -e "${GREEN}🎉 All services started successfully!${NC}"
 echo "=================================================="
 echo -e "${YELLOW}🌐 Service URLs:${NC}"
-echo "   Frontend:     http://localhost:5173"
-echo "   Backend API:  http://localhost:8000"
-echo "   API Docs:     http://localhost:8000/api/docs"
+echo "   Frontend:     https://$CODESPACE_NAME-5173.app.github.dev"
+echo "   Backend API:  https://$CODESPACE_NAME-8000.app.github.dev"
+echo "   API Docs:     https://$CODESPACE_NAME-8000.app.github.dev/api/docs"
 echo "   Database:     postgresql://postgres:password@localhost:5432/qc_standards"
 echo "   Redis:        redis://localhost:6379"
 echo ""
