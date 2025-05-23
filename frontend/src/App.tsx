@@ -21,7 +21,7 @@ const ChecklistDetailPage = lazy(() => import('./pages/checklists/ChecklistDetai
 const ChecklistExecutionPage = lazy(() => import('./pages/checklists/ChecklistExecutionPage'))
 const ProfilePage = lazy(() => import('./pages/auth/ProfilePage'))
 const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'))
-const AdminPage = lazy(() => import('./pages/admin/AdminPage'))
+const AdminPage = lazy(() => import('./pages/admin'))
 
 // Create axios instance with base URL
 const apiClient = axios.create({
