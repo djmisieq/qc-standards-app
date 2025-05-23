@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     VERSION: str = "0.1.0"
     
     # Security
-    SECRET_KEY: str
+    SECRET_KEY: str = "dev_secret_key_change_in_production"  # Default for development
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
     
     # Environment
@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "production"
     
     # Database
-    DATABASE_URL: str
+    DATABASE_URL: str = "postgresql://postgres:password@db:5432/qc_standards"  # Default for Docker
     
     # Redis
     REDIS_URL: str = "redis://redis:6379/0"
