@@ -29,25 +29,38 @@ services:
       - qc-network
 
   db:
-    image: postgres:16-alpine
+    image: postgres:15-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=qc_standards
-      - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - POSTGRES_INITDB_ARGS=--auth-local=trust --auth-host=md5
     ports:
       - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d qc_standards"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
     restart: unless-stopped
     networks:
       - qc-network
+    # Dodatkowe ustawienia dla Codespaces
+    shm_size: 128mb
+    command: >
+      postgres 
+      -c shared_preload_libraries=''
+      -c max_connections=100
+      -c shared_buffers=64MB
+      -c effective_cache_size=256MB
+      -c maintenance_work_mem=16MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
 
   redis:
     image: redis:7-alpine
@@ -55,12 +68,12 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
+      interval: 5s
       timeout: 3s
-      retries: 3
+      retries: 5
       start_period: 10s
     restart: unless-stopped
     networks:
