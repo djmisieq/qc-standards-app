@@ -1,33 +1,27 @@
-import { Link } from 'react-router-dom'
+import React from 'react';
+import { Link } from 'react-router-dom';
+import Button from '../components/ui/Button';
 
-export default function NotFoundPage() {
+const NotFoundPage: React.FC = () => {
   return (
-    <div className="flex min-h-full flex-col bg-white pt-16 pb-12">
-      <main className="mx-auto flex w-full max-w-7xl flex-grow flex-col justify-center px-6 lg:px-8">
-        <div className="flex flex-shrink-0 justify-center">
-          <Link to="/" className="inline-flex">
-            <span className="sr-only">QC Standards</span>
-            <img
-              className="h-12 w-auto"
-              src="/logo.svg"
-              alt="QC Standards"
-            />
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full text-center">
+        <div className="mb-6">
+          <h1 className="text-9xl font-extrabold text-blue-600">404</h1>
+          <h2 className="mt-2 text-3xl font-bold text-gray-900">Page Not Found</h2>
+          <p className="mt-4 text-lg text-gray-600">
+            The page you're looking for doesn't exist or has been moved.
+          </p>
+        </div>
+        
+        <div className="mt-8">
+          <Link to="/">
+            <Button>Return to Dashboard</Button>
           </Link>
         </div>
-        <div className="py-16">
-          <div className="text-center">
-            <p className="text-base font-semibold text-primary-600">404</p>
-            <h1 className="mt-2 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">Page not found.</h1>
-            <p className="mt-2 text-base text-gray-500">Sorry, we couldn't find the page you're looking for.</p>
-            <div className="mt-6">
-              <Link to="/" className="text-base font-medium text-primary-600 hover:text-primary-500">
-                Go back home
-                <span aria-hidden="true"> &rarr;</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </main>
+      </div>
     </div>
-  )
-}
+  );
+};
+
+export default NotFoundPage;
