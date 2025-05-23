@@ -19,28 +19,51 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
-# Function to wait for service to be ready
-wait_for_service() {
-    local service_name=$1
-    local host=$2
-    local port=$3
-    local max_attempts=30
+# Function to check postgres directly with docker command
+check_postgres() {
+    local container=$1
+    local max_attempts=$2
     local attempt=1
 
-    echo -e "${YELLOW}⏳ Waiting for $service_name to be ready...${NC}"
+    echo -e "${YELLOW}⏳ Waiting for PostgreSQL to be ready...${NC}"
     
     while [ $attempt -le $max_attempts ]; do
-        if nc -z $host $port 2>/dev/null; then
-            echo -e "${GREEN}✅ $service_name is ready!${NC}"
+        echo "   Attempt $attempt/$max_attempts..."
+        
+        if docker exec $container pg_isready -U postgres > /dev/null 2>&1; then
+            echo -e "${GREEN}✅ PostgreSQL is ready!${NC}"
             return 0
         fi
         
+        sleep 5
+        ((attempt++))
+    done
+    
+    echo -e "${RED}❌ PostgreSQL failed to start within expected time${NC}"
+    return 1
+}
+
+# Function to check redis directly with docker command
+check_redis() {
+    local container=$1
+    local max_attempts=$2
+    local attempt=1
+
+    echo -e "${YELLOW}⏳ Waiting for Redis to be ready...${NC}"
+    
+    while [ $attempt -le $max_attempts ]; do
         echo "   Attempt $attempt/$max_attempts..."
+        
+        if docker exec $container redis-cli ping > /dev/null 2>&1; then
+            echo -e "${GREEN}✅ Redis is ready!${NC}"
+            return 0
+        fi
+        
         sleep 2
         ((attempt++))
     done
     
-    echo -e "${RED}❌ $service_name failed to start within expected time${NC}"
+    echo -e "${RED}❌ Redis failed to start within expected time${NC}"
     return 1
 }
 
@@ -61,11 +84,19 @@ echo -e "${GREEN}✅ Prerequisites check passed${NC}"
 
 # Start database services
 echo -e "${YELLOW}🐘 Starting database services...${NC}"
-docker-compose -f docker-compose.dev.yml up -d db redis
+docker-compose -f docker-compose.dev.yml down
+docker-compose -f docker-compose.dev.yml up -d
 
-# Wait for services to be ready
-wait_for_service "PostgreSQL" "localhost" "5432"
-wait_for_service "Redis" "localhost" "6379"
+# Find container names
+DB_CONTAINER=$(docker-compose -f docker-compose.dev.yml ps -q db)
+REDIS_CONTAINER=$(docker-compose -f docker-compose.dev.yml ps -q redis)
+
+echo "Database container: $DB_CONTAINER"
+echo "Redis container: $REDIS_CONTAINER"
+
+# Wait for services to be ready using direct docker commands
+check_postgres $DB_CONTAINER 15
+check_redis $REDIS_CONTAINER 10
 
 # Install backend dependencies if not already installed
 if [ ! -d "backend/venv" ] && [ ! -f "backend/.deps_installed" ]; then
