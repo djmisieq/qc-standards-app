@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# QC Standards App - Development Startup Script
+# QC Standards App - Development Startup Script for Codespaces
 # This script starts all services needed for development
 
 set -e
@@ -124,6 +124,13 @@ if [ ! -f ".env" ]; then
     echo -e "${GREEN}✅ .env file created${NC}"
 fi
 
+# Create frontend .env.local for localhost API URL
+if [ ! -f "frontend/.env.local" ] || ! grep -q "localhost" "frontend/.env.local"; then
+    echo -e "${YELLOW}⚙️  Creating frontend .env.local file with localhost API URL...${NC}"
+    echo "VITE_API_URL=http://localhost:8000/api/v1" > frontend/.env.local
+    echo -e "${GREEN}✅ frontend .env.local created for Codespaces Simple Browser${NC}"
+fi
+
 # Create logo.png if it doesn't exist
 if [ ! -f "frontend/public/logo.png" ]; then
     echo -e "${YELLOW}⚙️  Creating placeholder logo.png...${NC}"
@@ -160,19 +167,21 @@ start_frontend
 # Wait a moment for services to initialize
 sleep 5
 
-# Get the codespace name from environment or URL
-CODESPACE_NAME=$(echo "$CODESPACE_NAME" || hostname)
-
 # Display service information
 echo ""
 echo -e "${GREEN}🎉 All services started successfully!${NC}"
 echo "=================================================="
-echo -e "${YELLOW}🌐 Service URLs:${NC}"
-echo "   Frontend:     https://$CODESPACE_NAME-5173.app.github.dev"
-echo "   Backend API:  https://$CODESPACE_NAME-8000.app.github.dev"
-echo "   API Docs:     https://$CODESPACE_NAME-8000.app.github.dev/api/docs"
-echo "   Database:     postgresql://postgres:password@localhost:5432/qc_standards"
-echo "   Redis:        redis://localhost:6379"
+echo -e "${YELLOW}🌐 Service URLs for Codespaces Simple Browser:${NC}"
+echo "   Frontend: http://localhost:5173 (Click 'Ports' tab below, then the globe icon next to port 5173)"
+echo "   Backend API: http://localhost:8000 (Click 'Ports' tab below, then the globe icon next to port 8000)"
+echo "   API Docs: http://localhost:8000/api/docs"
+echo "   Database: postgresql://postgres:password@localhost:5432/qc_standards"
+echo "   Redis: redis://localhost:6379"
+echo ""
+echo -e "${YELLOW}💡 How to access in Codespaces Simple Browser:${NC}"
+echo "   1. Look at the bottom panel in Codespaces for the 'PORTS' tab"
+echo "   2. Find port 5173 in the list and click the 'globe' icon to open the frontend"
+echo "   3. You can also click the 'globe' icon next to port 8000 to see the backend API docs"
 echo ""
 echo -e "${YELLOW}📋 Useful commands:${NC}"
 echo "   View logs:           docker-compose -f docker-compose.dev.yml logs"
