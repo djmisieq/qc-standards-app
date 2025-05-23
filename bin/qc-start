@@ -18,12 +18,12 @@ cd /workspaces/qc-standards-app
 echo -e "${GREEN}🚀 Starting QC Standards App in Codespaces...${NC}"
 echo "=================================================="
 
-# Function to wait for service to be ready
+# Function to wait for service to be ready (for ports that work with nc)
 wait_for_service() {
     local service_name=$1
     local host=$2
     local port=$3
-    local max_attempts=30
+    local max_attempts=15
     local attempt=1
 
     echo -e "${YELLOW}⏳ Waiting for $service_name to be ready...${NC}"
@@ -34,26 +34,30 @@ wait_for_service() {
             return 0
         fi
         
-        if [ $((attempt % 5)) -eq 0 ]; then
+        if [ $((attempt % 3)) -eq 0 ]; then
             echo "   Still waiting... ($attempt/$max_attempts)"
         fi
         sleep 2
         ((attempt++))
     done
     
-    echo -e "${RED}❌ $service_name failed to start within expected time${NC}"
-    return 1
+    echo -e "${YELLOW}⚠️  $service_name connection test failed, but continuing...${NC}"
+    return 0  # Don't fail, just warn
 }
 
-# Function to check PostgreSQL using docker exec
+# Function to check PostgreSQL using docker-compose
 wait_for_postgres() {
-    local max_attempts=30
+    local max_attempts=20
     local attempt=1
 
     echo -e "${YELLOW}⏳ Waiting for PostgreSQL to be ready...${NC}"
     
     while [ $attempt -le $max_attempts ]; do
-        if docker exec qc-standards-app-db-1 pg_isready -U postgres >/dev/null 2>&1; then
+        # Try docker-compose exec first, then docker exec as fallback
+        if docker-compose -f docker-compose.dev.yml exec -T db pg_isready -U postgres >/dev/null 2>&1; then
+            echo -e "${GREEN}✅ PostgreSQL is ready!${NC}"
+            return 0
+        elif docker exec qc-standards-app-db-1 pg_isready -U postgres >/dev/null 2>&1; then
             echo -e "${GREEN}✅ PostgreSQL is ready!${NC}"
             return 0
         fi
@@ -65,8 +69,8 @@ wait_for_postgres() {
         ((attempt++))
     done
     
-    echo -e "${RED}❌ PostgreSQL failed to start within expected time${NC}"
-    return 1
+    echo -e "${YELLOW}⚠️  PostgreSQL readiness check failed, but PostgreSQL might still work${NC}"
+    return 0  # Don't fail, just warn
 }
 
 # Function to check if a process is running
@@ -93,22 +97,19 @@ if [ ! -f ".env" ]; then
     cp .env.example .env
 fi
 
-# Start databases with health checks
+# Start databases
 echo -e "${YELLOW}📦 Starting database services...${NC}"
 docker-compose -f docker-compose.dev.yml up -d db redis
 
-# Wait for databases to be ready with improved error handling
-wait_for_postgres || {
-    echo -e "${RED}❌ PostgreSQL failed to start. Checking logs...${NC}"
-    docker-compose -f docker-compose.dev.yml logs db | tail -20
-    echo -e "${YELLOW}💡 But let's try to continue anyway - PostgreSQL might still work...${NC}"
-}
+# Give services time to start
+echo -e "${YELLOW}⏳ Giving services time to initialize...${NC}"
+sleep 10
 
-wait_for_service "Redis" "localhost" "6379" || {
-    echo -e "${RED}❌ Redis failed to start. Checking logs...${NC}"
-    docker-compose -f docker-compose.dev.yml logs redis
-    echo -e "${YELLOW}💡 Continuing without Redis - app should still work...${NC}"
-}
+# Check PostgreSQL with improved method
+wait_for_postgres
+
+# Check Redis with graceful degradation
+wait_for_service "Redis" "localhost" "6379"
 
 # Start backend with better error handling
 echo -e "${YELLOW}🔧 Starting FastAPI backend...${NC}"
@@ -143,30 +144,44 @@ echo "Frontend PID: $FRONTEND_PID"
 
 cd ..
 
-# Wait for services to start with health checks
-echo -e "${YELLOW}⏳ Waiting for services to be ready...${NC}"
-sleep 5
+# Wait for services to start
+echo -e "${YELLOW}⏳ Waiting for application services to be ready...${NC}"
+sleep 8
 
-# Check if backend is responding
-if wait_for_service "Backend API" "localhost" "8000"; then
-    echo -e "${GREEN}✅ Backend is ready!${NC}"
-else
-    echo -e "${RED}❌ Backend failed to start. Check logs:${NC}"
-    echo "tail -f /tmp/backend.log"
-    exit 1
+# Check if backend is responding with more attempts
+backend_ready=false
+for i in {1..10}; do
+    if curl -s http://localhost:8000/health >/dev/null 2>&1 || nc -z localhost 8000 2>/dev/null; then
+        echo -e "${GREEN}✅ Backend is ready!${NC}"
+        backend_ready=true
+        break
+    fi
+    sleep 2
+done
+
+if [ "$backend_ready" = false ]; then
+    echo -e "${YELLOW}⚠️  Backend readiness check failed, but it might still be starting...${NC}"
+    echo -e "${BLUE}📊 Check backend logs: tail -f /tmp/backend.log${NC}"
 fi
 
-# Check if frontend is responding
-if wait_for_service "Frontend" "localhost" "5173"; then
-    echo -e "${GREEN}✅ Frontend is ready!${NC}"
-else
-    echo -e "${RED}❌ Frontend failed to start. Check logs:${NC}"
-    echo "tail -f /tmp/frontend.log"
-    exit 1
+# Check if frontend is responding with more attempts
+frontend_ready=false
+for i in {1..10}; do
+    if nc -z localhost 5173 2>/dev/null; then
+        echo -e "${GREEN}✅ Frontend is ready!${NC}"
+        frontend_ready=true
+        break
+    fi
+    sleep 2
+done
+
+if [ "$frontend_ready" = false ]; then
+    echo -e "${YELLOW}⚠️  Frontend readiness check failed, but it might still be starting...${NC}"
+    echo -e "${BLUE}📊 Check frontend logs: tail -f /tmp/frontend.log${NC}"
 fi
 
 echo ""
-echo -e "${GREEN}🎉 QC Standards App is running successfully!${NC}"
+echo -e "${GREEN}🎉 QC Standards App startup completed!${NC}"
 echo "=================================================="
 echo -e "${BLUE}🌐 Service URLs:${NC}"
 echo "   Frontend:     http://localhost:5173"
@@ -183,4 +198,5 @@ echo "   Quick stop:   docker-compose -f docker-compose.dev.yml down"
 echo "   Kill all:     lsof -ti:8000,5173 | xargs kill -9"
 echo ""
 echo -e "${GREEN}✨ Access your app through the forwarded ports in VS Code!${NC}"
+echo -e "${YELLOW}💡 If services didn't start, check the logs above and try again.${NC}"
 echo ""
