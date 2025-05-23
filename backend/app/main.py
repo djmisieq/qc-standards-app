@@ -8,6 +8,7 @@ from datetime import datetime
 
 from app.api.router import api_router
 from app.core.config import settings
+from app.db.session import init_db
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -60,6 +61,17 @@ async def global_exception_handler(request: Request, exc: Exception):
         status_code=500,
         content={"detail": "An unexpected error occurred. Please try again later."},
     )
+
+# Initialize database on startup
+@app.on_event("startup")
+async def startup_event():
+    logger.info("Initializing database...")
+    try:
+        init_db()
+        logger.info("Database initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize database: {e}", exc_info=True)
+        raise
 
 
 if __name__ == "__main__":
