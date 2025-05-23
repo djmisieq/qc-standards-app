@@ -1,38 +1,29 @@
-import { ReactNode } from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext'
-import LoadingSpinner from '../ui/LoadingSpinner'
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 interface ProtectedRouteProps {
-  children: ReactNode
-  requiredRole?: 'admin' | 'qc_engineer' | 'production_leader' | 'qc_operator' | 'viewer'
+  children: React.ReactNode;
+  adminOnly?: boolean;
 }
 
-const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
-  const { isAuthenticated, user, isLoading } = useAuth()
-  const location = useLocation()
-
-  if (isLoading) {
-    return <LoadingSpinner fullScreen />
-  }
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
+  children, 
+  adminOnly = false 
+}) => {
+  const { isAuthenticated, user } = useAuth();
 
   if (!isAuthenticated) {
-    // Redirect to login page with the return url
-    return <Navigate to="/login" state={{ from: location }} replace />
+    // Redirect to login if not authenticated
+    return <Navigate to="/login" />;
   }
 
-  // Check role-based access if a requiredRole is specified
-  if (requiredRole && user && user.role !== requiredRole) {
-    if (user.role === 'admin') {
-      // Admins can access everything
-      return <>{children}</>
-    }
-    
-    // Role-based redirect
-    return <Navigate to="/" replace />
+  if (adminOnly && (!user || !user.is_admin)) {
+    // Redirect to dashboard if not admin but trying to access admin route
+    return <Navigate to="/" />;
   }
 
-  return <>{children}</>
-}
+  return <>{children}</>;
+};
 
-export default ProtectedRoute
+export default ProtectedRoute;
