@@ -17,11 +17,11 @@ class Settings(BaseSettings):
     DEBUG: bool = True  # Changed to True for development
     ENVIRONMENT: str = "development"
     
-    # Database
-    DATABASE_URL: str = "postgresql://postgres:password@db:5432/qc_standards"  # Default for Docker
+    # Database - Use localhost for direct connection in Codespaces
+    DATABASE_URL: str = "postgresql://postgres:password@localhost:5432/qc_standards"
     
     # Redis
-    REDIS_URL: str = "redis://redis:6379/0"
+    REDIS_URL: str = "redis://localhost:6379/0"
     
     # CORS - Updated to include GitHub Codespaces URLs
     BACKEND_CORS_ORIGINS: str = "http://localhost:5173,http://localhost:8080,https://*.github.dev,https://*.app.github.dev,https://*.githubpreview.dev"
