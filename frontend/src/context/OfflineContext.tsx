@@ -1,183 +1,135 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { get, set, del, createStore } from 'idb-keyval'
-
-// Custom store for offline data
-const offlineStore = createStore('qc-standards-offline', 'offline-store')
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface OfflineContextType {
-  isOnline: boolean
-  isPendingSync: boolean
-  lastSyncTime: Date | null
-  syncData: () => Promise<void>
-  saveOfflineData: (key: string, data: any) => Promise<void>
-  getOfflineData: <T>(key: string) => Promise<T | null>
-  removeOfflineData: (key: string) => Promise<void>
-  pendingSyncCount: number
+  isOnline: boolean;
+  offlineData: any;
+  saveOfflineData: (key: string, data: any) => void;
+  getOfflineData: (key: string) => any;
+  clearOfflineData: (key?: string) => void;
+  pendingActions: any[];
+  addPendingAction: (action: any) => void;
+  processPendingActions: () => Promise<void>;
 }
 
-const OfflineContext = createContext<OfflineContextType | null>(null)
+const OfflineContext = createContext<OfflineContextType>({
+  isOnline: true,
+  offlineData: {},
+  saveOfflineData: () => {},
+  getOfflineData: () => null,
+  clearOfflineData: () => {},
+  pendingActions: [],
+  addPendingAction: () => {},
+  processPendingActions: async () => {},
+});
 
-export const useOffline = () => {
-  const context = useContext(OfflineContext)
-  if (!context) {
-    throw new Error('useOffline must be used within an OfflineProvider')
-  }
-  return context
-}
+export const useOffline = () => useContext(OfflineContext);
 
 interface OfflineProviderProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
-export const OfflineProvider = ({ children }: OfflineProviderProps) => {
-  const [isOnline, setIsOnline] = useState(navigator.onLine)
-  const [isPendingSync, setIsPendingSync] = useState(false)
-  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null)
-  const [pendingSyncCount, setPendingSyncCount] = useState(0)
+export const OfflineProvider: React.FC<OfflineProviderProps> = ({ children }) => {
+  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
+  const [offlineData, setOfflineData] = useState<any>(() => {
+    const storedData = localStorage.getItem('offlineData');
+    return storedData ? JSON.parse(storedData) : {};
+  });
+  const [pendingActions, setPendingActions] = useState<any[]>(() => {
+    const storedActions = localStorage.getItem('pendingActions');
+    return storedActions ? JSON.parse(storedActions) : [];
+  });
 
-  // Load last sync time from localStorage
+  // Check online status
   useEffect(() => {
-    const storedSyncTime = localStorage.getItem('lastSyncTime')
-    if (storedSyncTime) {
-      setLastSyncTime(new Date(storedSyncTime))
-    }
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
 
-    // Check for pending sync items
-    const checkPendingSync = async () => {
-      try {
-        const syncQueue = await get('syncQueue', offlineStore) || []
-        setPendingSyncCount(syncQueue.length)
-      } catch (error) {
-        console.error('Error checking pending sync:', error)
-      }
-    }
-
-    checkPendingSync()
-  }, [])
-
-  // Set up online/offline listeners
-  useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true)
-      // Attempt to sync when coming back online
-      syncData()
-    }
-
-    const handleOffline = () => {
-      setIsOnline(false)
-    }
-
-    window.addEventListener('online', handleOnline)
-    window.addEventListener('offline', handleOffline)
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
 
     return () => {
-      window.removeEventListener('online', handleOnline)
-      window.removeEventListener('offline', handleOffline)
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Save offline data to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('offlineData', JSON.stringify(offlineData));
+  }, [offlineData]);
+
+  // Save pending actions to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem('pendingActions', JSON.stringify(pendingActions));
+  }, [pendingActions]);
+
+  // Handle auto-sync when coming back online
+  useEffect(() => {
+    if (isOnline && pendingActions.length > 0) {
+      processPendingActions();
     }
-  }, [])
+  }, [isOnline]);
 
-  // Save offline data to IndexedDB
-  const saveOfflineData = async (key: string, data: any) => {
-    try {
-      await set(key, data, offlineStore)
-    } catch (error) {
-      console.error('Error saving offline data:', error)
-      throw error
+  const saveOfflineData = (key: string, data: any) => {
+    setOfflineData(prev => ({
+      ...prev,
+      [key]: data
+    }));
+  };
+
+  const getOfflineData = (key: string) => {
+    return offlineData[key] || null;
+  };
+
+  const clearOfflineData = (key?: string) => {
+    if (key) {
+      setOfflineData(prev => {
+        const newData = { ...prev };
+        delete newData[key];
+        return newData;
+      });
+    } else {
+      setOfflineData({});
     }
-  }
+  };
 
-  // Get offline data from IndexedDB
-  const getOfflineData = async <T,>(key: string): Promise<T | null> => {
-    try {
-      return await get(key, offlineStore)
-    } catch (error) {
-      console.error('Error getting offline data:', error)
-      return null
-    }
-  }
+  const addPendingAction = (action: any) => {
+    setPendingActions(prev => [...prev, action]);
+  };
 
-  // Remove offline data from IndexedDB
-  const removeOfflineData = async (key: string) => {
-    try {
-      await del(key, offlineStore)
-    } catch (error) {
-      console.error('Error removing offline data:', error)
-      throw error
-    }
-  }
+  const processPendingActions = async () => {
+    if (!isOnline || pendingActions.length === 0) return;
 
-  // Sync data with server
-  const syncData = async () => {
-    if (!isOnline) {
-      return
-    }
+    const actions = [...pendingActions];
+    setPendingActions([]);
 
-    setIsPendingSync(true)
-
-    try {
-      // Get sync queue from IndexedDB
-      const syncQueue = await get('syncQueue', offlineStore) || []
-      
-      if (syncQueue.length === 0) {
-        setIsPendingSync(false)
-        return
+    for (const action of actions) {
+      try {
+        // Process the action - in a real app, this would make API calls
+        console.log('Processing action:', action);
+        // await api.process(action);
+      } catch (error) {
+        console.error('Failed to process action:', error);
+        // Add back to pending actions if failed
+        addPendingAction(action);
       }
-
-      // Process each item in the queue
-      const remainingItems = [];
-      
-      for (const item of syncQueue) {
-        try {
-          // Execute the API call
-          await fetch(item.url, {
-            method: item.method,
-            headers: {
-              'Content-Type': 'application/json',
-              ...(item.headers || {}),
-            },
-            body: item.body ? JSON.stringify(item.body) : undefined,
-          })
-          
-          // If there was specific local data related to this sync item, clean it up
-          if (item.localDataKey) {
-            await removeOfflineData(item.localDataKey)
-          }
-        } catch (error) {
-          console.error('Error syncing item:', error)
-          // Keep failed items in the queue to retry later
-          remainingItems.push(item)
-        }
-      }
-
-      // Update the sync queue with remaining items
-      await set('syncQueue', remainingItems, offlineStore)
-      setPendingSyncCount(remainingItems.length)
-      
-      // Update last sync time
-      const now = new Date()
-      localStorage.setItem('lastSyncTime', now.toISOString())
-      setLastSyncTime(now)
-    } catch (error) {
-      console.error('Sync error:', error)
-    } finally {
-      setIsPendingSync(false)
     }
-  }
+  };
 
   return (
     <OfflineContext.Provider
       value={{
         isOnline,
-        isPendingSync,
-        lastSyncTime,
-        syncData,
+        offlineData,
         saveOfflineData,
         getOfflineData,
-        removeOfflineData,
-        pendingSyncCount,
+        clearOfflineData,
+        pendingActions,
+        addPendingAction,
+        processPendingActions,
       }}
     >
       {children}
     </OfflineContext.Provider>
-  )
-}
+  );
+};
