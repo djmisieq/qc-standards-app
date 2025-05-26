@@ -43,7 +43,15 @@ async def register(user_in: UserCreate, db: Session = Depends(get_db)):
         )
     
     # Create new user
-    user = User.from_orm(user_in)
+    user = User(
+        username=user_in.username,
+        email=user_in.email,
+        full_name=user_in.full_name,
+        role=user_in.role,
+        is_active=user_in.is_active,
+        is_superuser=user_in.is_superuser,
+        hashed_password=""  # Will be set in the next line
+    )
     user.set_password(user_in.password)
     
     db.add(user)
