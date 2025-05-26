@@ -9,13 +9,16 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "QC Standards"
     VERSION: str = "0.1.0"
     
-    # Security
-    SECRET_KEY: str = "dev_secret_key_change_in_production"  # Default for development
+    # Security - Get from environment variable
+    SECRET_KEY: str = os.getenv(
+        "SECRET_KEY",
+        "dev_secret_key_change_in_production"  # Default for development only
+    )
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
     
     # Environment
-    DEBUG: bool = True  # Changed to True for development
-    ENVIRONMENT: str = "development"
+    DEBUG: bool = os.getenv("DEBUG", "False").lower() == "true"
+    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
     
     # Database - Get from environment variable or use default
     DATABASE_URL: str = os.getenv(
@@ -30,7 +33,10 @@ class Settings(BaseSettings):
     )
     
     # CORS - Updated to include GitHub Codespaces URLs
-    BACKEND_CORS_ORIGINS: str = "http://localhost:5173,http://localhost:8080,https://*.github.dev,https://*.app.github.dev,https://*.githubpreview.dev"
+    BACKEND_CORS_ORIGINS: str = os.getenv(
+        "BACKEND_CORS_ORIGINS",
+        "http://localhost:5173,http://localhost:8080,https://*.github.dev,https://*.app.github.dev,https://*.githubpreview.dev"
+    )
     
     # File upload settings
     UPLOADS_DIR: str = "photos"
@@ -43,6 +49,12 @@ class Settings(BaseSettings):
     
     @validator("BACKEND_CORS_ORIGINS")
     def validate_cors_origins(cls, v):
+        return v
+    
+    @validator("SECRET_KEY")
+    def validate_secret_key(cls, v, values):
+        if values.get("ENVIRONMENT") == "production" and v == "dev_secret_key_change_in_production":
+            raise ValueError("SECRET_KEY must be set in production environment")
         return v
         
     class Config:
