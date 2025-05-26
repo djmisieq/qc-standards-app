@@ -5,6 +5,9 @@ from sqlmodel import Session, SQLModel, create_engine
 
 from app.core.config import settings
 
+# Import all models before creating tables
+from app.db.base import *  # This imports all models and their relationships
+
 engine = create_engine(
     settings.DATABASE_URL,
     echo=settings.DEBUG,
