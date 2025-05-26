@@ -17,11 +17,17 @@ class Settings(BaseSettings):
     DEBUG: bool = True  # Changed to True for development
     ENVIRONMENT: str = "development"
     
-    # Database - Use localhost for direct connection in Codespaces
-    DATABASE_URL: str = "postgresql://postgres:password@localhost:5432/qc_standards"
+    # Database - Get from environment variable or use default
+    DATABASE_URL: str = os.getenv(
+        "DATABASE_URL",
+        "postgresql://postgres:password@localhost:5432/qc_standards"
+    )
     
     # Redis
-    REDIS_URL: str = "redis://localhost:6379/0"
+    REDIS_URL: str = os.getenv(
+        "REDIS_URL",
+        "redis://localhost:6379/0"
+    )
     
     # CORS - Updated to include GitHub Codespaces URLs
     BACKEND_CORS_ORIGINS: str = "http://localhost:5173,http://localhost:8080,https://*.github.dev,https://*.app.github.dev,https://*.githubpreview.dev"
