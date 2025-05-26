@@ -1,7 +1,12 @@
 from typing import Optional, List
 from datetime import datetime
 from sqlmodel import Field, SQLModel, Relationship, Column, Enum, String
+from passlib.context import CryptContext
+from pydantic import BaseModel
 import enum
+
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 class UserRole(str, enum.Enum):
@@ -28,6 +33,14 @@ class User(UserBase, table=True):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     
     # Relationships will be defined in SQLModel after all models are created
+    
+    def set_password(self, password: str) -> None:
+        """Hash and set the password."""
+        self.hashed_password = pwd_context.hash(password)
+    
+    def verify_password(self, password: str) -> bool:
+        """Verify the password against the hash."""
+        return pwd_context.verify(password, self.hashed_password)
 
 
 class UserCreate(UserBase):
@@ -52,3 +65,17 @@ class UserRead(UserBase):
 class UserReadWithStats(UserRead):
     template_count: int
     checklist_count: int
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    username: Optional[str] = None
+
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
