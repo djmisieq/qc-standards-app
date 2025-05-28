@@ -16,7 +16,7 @@ def create_default_admin(session: Session) -> None:
     # Check if admin already exists by username or email
     statement = select(User).where(
         (User.email == "admin@qcstandards.com") | 
-        (User.email == "admin") |
+        (User.email == "admin@example.com") |
         (User.username == "admin")
     )
     existing_admin = session.exec(statement).first()
@@ -28,7 +28,7 @@ def create_default_admin(session: Session) -> None:
     # Create admin user with simple credentials
     admin_user = User(
         username="admin",
-        email="admin",  # Use 'admin' as email for simple login
+        email="admin@example.com",  # Use valid email format
         full_name="System Administrator",
         role=UserRole.ADMIN,
         is_active=True,
@@ -40,7 +40,8 @@ def create_default_admin(session: Session) -> None:
     session.commit()
     
     logger.info("Default admin user created successfully")
-    logger.info("Admin login: username/email: admin, password: admin")
+    logger.info("Admin login - Username: admin, Password: admin")
+    logger.info("(You can also use email: admin@example.com)")
 
 
 def init_data() -> None:
