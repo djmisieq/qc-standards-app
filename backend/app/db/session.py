@@ -20,6 +20,10 @@ def init_db() -> None:
     logging.info("Creating database tables")
     SQLModel.metadata.create_all(engine)
     logging.info("Database tables created")
+    
+    # Initialize default data
+    from app.db.init_data import init_data
+    init_data()
 
 
 def get_db() -> Generator[Session, None, None]:
