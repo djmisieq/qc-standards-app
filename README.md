@@ -22,6 +22,15 @@ qc
 
 **That's it!** 🎉 Your entire development environment launches automatically!
 
+### 🧹 **Advanced Startup Options** (to prevent Codespaces issues)
+
+```bash
+start --clean    # Deep clean before starting (removes containers, volumes, caches)
+start --minimal  # Start only essential services (database and backend)
+start --force    # Force restart all services
+start --help     # Show all available options
+```
+
 ---
 
 ## Features
@@ -131,8 +140,13 @@ You can also login using email:
 
 ### In Codespaces Terminal:
 ```bash
-start    # Launch entire application
-qc       # Same as start (shorter)
+start           # Launch entire application
+start --clean   # Deep clean and start (if Codespaces is hanging)
+start --minimal # Start only backend + database (saves resources)
+start --force   # Force restart all services
+start --help    # Show all options
+
+qc              # Same as start (shorter)
 ```
 
 ### Alternative methods:
@@ -148,6 +162,22 @@ docker-compose -f docker-compose.dev.yml down
 
 ## 🐛 Troubleshooting
 
+### Codespaces Hanging Issues
+If Codespaces is slow or hanging, use the enhanced start script:
+```bash
+# Deep clean and restart
+start --clean
+
+# Or start with minimal resources
+start --minimal
+```
+
+The script now includes:
+- 📊 **Resource monitoring** - Shows memory, CPU, and disk usage
+- 🧹 **Automatic cleanup** - Removes old processes and containers
+- 💾 **Cache cleaning** - Clears npm and pip caches (with --clean)
+- 🎯 **Minimal mode** - Run only essential services
+
 ### Quick Fixes
 ```bash
 # Restart all services
@@ -158,7 +188,7 @@ docker-compose -f docker-compose.dev.yml logs
 
 # Clean restart
 docker-compose -f docker-compose.dev.yml down
-start  # or qc
+start --clean
 ```
 
 ### Database Issues
@@ -177,6 +207,18 @@ start  # This will restart everything fresh
 lsof -ti:8000 | xargs kill -9
 lsof -ti:5173 | xargs kill -9
 start  # Restart after clearing ports
+```
+
+### Resource Issues
+```bash
+# Check system resources
+free -h          # Memory usage
+df -h           # Disk space
+docker ps       # Running containers
+docker system df # Docker disk usage
+
+# Clean up Docker resources
+docker system prune -a --volumes
 ```
 
 ## 📁 Project Structure
