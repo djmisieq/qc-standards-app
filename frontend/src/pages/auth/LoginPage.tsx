@@ -104,12 +104,6 @@ const LoginPage = () => {
               required
             />
 
-            <div className="text-sm text-gray-600 bg-gray-100 p-3 rounded">
-              <strong>Default admin credentials:</strong><br />
-              Username: <code>admin</code><br />
-              Password: <code>admin</code>
-            </div>
-
             <Button
               type="submit"
               isLoading={isLoading}
