@@ -10,15 +10,115 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
 NC='\033[0m' # No Color
 
 # Navigate to the project directory
 cd /workspaces/qc-standards-app
 
+# Parse command line arguments
+CLEAN_MODE=false
+MINIMAL_MODE=false
+FORCE_MODE=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --clean)
+            CLEAN_MODE=true
+            shift
+            ;;
+        --minimal)
+            MINIMAL_MODE=true
+            shift
+            ;;
+        --force)
+            FORCE_MODE=true
+            shift
+            ;;
+        --help)
+            echo "Usage: start [OPTIONS]"
+            echo ""
+            echo "Options:"
+            echo "  --clean     Deep clean before starting (removes containers, volumes, caches)"
+            echo "  --minimal   Start only essential services (database and backend)"
+            echo "  --force     Force restart all services"
+            echo "  --help      Show this help message"
+            exit 0
+            ;;
+        *)
+            echo -e "${RED}Unknown option: $1${NC}"
+            echo "Use --help for usage information"
+            exit 1
+            ;;
+    esac
+done
+
 echo -e "${GREEN}🚀 Starting QC Standards App in Codespaces...${NC}"
 echo "=================================================="
 
-# Function to wait for service to be ready (for ports that work with nc)
+# Function to check system resources
+check_resources() {
+    echo -e "${BLUE}📊 System Resources:${NC}"
+    echo -n "   Memory: "
+    free -h | grep Mem | awk '{printf "%s/%s (%.0f%% used)\n", $3, $2, ($3/$2)*100}'
+    echo -n "   CPU cores: "
+    nproc
+    echo -n "   Disk space: "
+    df -h / | tail -1 | awk '{printf "%s/%s (%s used)\n", $3, $2, $5}'
+    echo ""
+}
+
+# Function to clean resources
+clean_resources() {
+    echo -e "${YELLOW}🧹 Cleaning up resources...${NC}"
+    
+    # Stop all processes using our ports
+    echo "   Stopping processes on ports..."
+    for port in 8000 5173 5432 6379; do
+        if lsof -ti:$port >/dev/null 2>&1; then
+            echo "   - Killing processes on port $port"
+            lsof -ti:$port | xargs kill -9 2>/dev/null || true
+        fi
+    done
+    
+    # Stop and remove Docker containers
+    echo "   Stopping Docker containers..."
+    docker-compose -f docker-compose.dev.yml down 2>/dev/null || true
+    
+    if [ "$CLEAN_MODE" = true ]; then
+        echo -e "${YELLOW}🧽 Deep cleaning mode activated...${NC}"
+        
+        # Remove volumes
+        echo "   Removing Docker volumes..."
+        docker-compose -f docker-compose.dev.yml down -v 2>/dev/null || true
+        
+        # Clean Docker system
+        echo "   Cleaning Docker system..."
+        docker system prune -f 2>/dev/null || true
+        
+        # Clean npm cache
+        if [ -d "frontend" ]; then
+            echo "   Cleaning npm cache..."
+            cd frontend
+            npm cache clean --force 2>/dev/null || true
+            rm -rf node_modules package-lock.json 2>/dev/null || true
+            cd ..
+        fi
+        
+        # Clean Python cache
+        echo "   Cleaning Python cache..."
+        find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+        find . -type f -name "*.pyc" -delete 2>/dev/null || true
+        pip cache purge 2>/dev/null || true
+        
+        # Remove marker files
+        rm -f backend/.deps_installed 2>/dev/null || true
+    fi
+    
+    sleep 2
+}
+
+# Function to wait for service to be ready
 wait_for_service() {
     local service_name=$1
     local host=$2
@@ -38,14 +138,14 @@ wait_for_service() {
             echo "   Still waiting... ($attempt/$max_attempts)"
         fi
         sleep 2
-        ((attempt++))
+        ((attempt++)
     done
     
     echo -e "${YELLOW}⚠️  $service_name connection test failed, but continuing...${NC}"
-    return 0  # Don't fail, just warn
+    return 0
 }
 
-# Function to check PostgreSQL using docker-compose
+# Function to check PostgreSQL
 wait_for_postgres() {
     local max_attempts=20
     local attempt=1
@@ -53,11 +153,8 @@ wait_for_postgres() {
     echo -e "${YELLOW}⏳ Waiting for PostgreSQL to be ready...${NC}"
     
     while [ $attempt -le $max_attempts ]; do
-        # Try docker-compose exec first, then docker exec as fallback
-        if docker-compose -f docker-compose.dev.yml exec -T db pg_isready -U postgres >/dev/null 2>&1; then
-            echo -e "${GREEN}✅ PostgreSQL is ready!${NC}"
-            return 0
-        elif docker exec qc-standards-app-db-1 pg_isready -U postgres >/dev/null 2>&1; then
+        if docker-compose -f docker-compose.dev.yml exec -T db pg_isready -U postgres >/dev/null 2>&1 || \
+           docker exec qc-standards-app-db-1 pg_isready -U postgres >/dev/null 2>&1; then
             echo -e "${GREEN}✅ PostgreSQL is ready!${NC}"
             return 0
         fi
@@ -66,29 +163,35 @@ wait_for_postgres() {
             echo "   Still waiting... ($attempt/$max_attempts)"
         fi
         sleep 2
-        ((attempt++))
+        ((attempt++)
     done
     
     echo -e "${YELLOW}⚠️  PostgreSQL readiness check failed, but PostgreSQL might still work${NC}"
-    return 0  # Don't fail, just warn
+    return 0
 }
 
-# Function to check if a process is running
-is_process_running() {
-    local port=$1
-    lsof -ti:$port >/dev/null 2>&1
+# Function to monitor resources during startup
+monitor_resources() {
+    local service=$1
+    echo -e "${PURPLE}📈 Resource usage after starting $service:${NC}"
+    free -h | grep Mem | awk '{printf "   Memory: %s/%s (%.0f%% used)\n", $3, $2, ($3/$2)*100}'
 }
 
-# Stop any existing processes
-echo -e "${YELLOW}🧹 Cleaning up existing processes...${NC}"
-if is_process_running 8000; then
-    echo "Stopping existing backend process..."
-    lsof -ti:8000 | xargs kill -9 2>/dev/null || true
-fi
+# Main execution starts here
+check_resources
 
-if is_process_running 5173; then
-    echo "Stopping existing frontend process..."
-    lsof -ti:5173 | xargs kill -9 2>/dev/null || true
+# Clean if requested or if force mode
+if [ "$CLEAN_MODE" = true ] || [ "$FORCE_MODE" = true ]; then
+    clean_resources
+else
+    # Basic cleanup of processes only
+    echo -e "${YELLOW}🧹 Cleaning up existing processes...${NC}"
+    for port in 8000 5173; do
+        if lsof -ti:$port >/dev/null 2>&1; then
+            echo "   Stopping processes on port $port..."
+            lsof -ti:$port | xargs kill -9 2>/dev/null || true
+        fi
+    done
 fi
 
 # Ensure .env file exists
@@ -100,23 +203,22 @@ fi
 # Start databases
 echo -e "${YELLOW}📦 Starting database services...${NC}"
 docker-compose -f docker-compose.dev.yml up -d db redis
+monitor_resources "databases"
 
 # Give services time to start
 echo -e "${YELLOW}⏳ Giving services time to initialize...${NC}"
 sleep 10
 
-# Check PostgreSQL with improved method
+# Check services
 wait_for_postgres
-
-# Check Redis with graceful degradation
 wait_for_service "Redis" "localhost" "6379"
 
-# Start backend with better error handling
+# Start backend
 echo -e "${YELLOW}🔧 Starting FastAPI backend...${NC}"
 cd backend
 
 # Check if requirements are installed
-if [ ! -f ".deps_installed" ]; then
+if [ ! -f ".deps_installed" ] || [ "$CLEAN_MODE" = true ]; then
     echo -e "${YELLOW}📦 Installing Python dependencies...${NC}"
     pip install -r requirements.txt
     touch .deps_installed
@@ -126,21 +228,27 @@ fi
 nohup uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 > /tmp/backend.log 2>&1 &
 BACKEND_PID=$!
 echo "Backend PID: $BACKEND_PID"
+monitor_resources "backend"
 
-# Start frontend with better error handling
-echo -e "${YELLOW}⚛️  Starting React frontend...${NC}"
-cd ../frontend
+# Start frontend only if not in minimal mode
+if [ "$MINIMAL_MODE" = false ]; then
+    echo -e "${YELLOW}⚛️  Starting React frontend...${NC}"
+    cd ../frontend
 
-# Check if node_modules exist
-if [ ! -d "node_modules" ]; then
-    echo -e "${YELLOW}📦 Installing Node.js dependencies...${NC}"
-    npm install
+    # Check if node_modules exist
+    if [ ! -d "node_modules" ] || [ "$CLEAN_MODE" = true ]; then
+        echo -e "${YELLOW}📦 Installing Node.js dependencies...${NC}"
+        npm install
+    fi
+
+    # Start frontend
+    nohup npm run dev -- --host 0.0.0.0 --port 5173 > /tmp/frontend.log 2>&1 &
+    FRONTEND_PID=$!
+    echo "Frontend PID: $FRONTEND_PID"
+    monitor_resources "frontend"
+else
+    echo -e "${BLUE}📝 Minimal mode: Skipping frontend startup${NC}"
 fi
-
-# Start frontend
-nohup npm run dev -- --host 0.0.0.0 --port 5173 > /tmp/frontend.log 2>&1 &
-FRONTEND_PID=$!
-echo "Frontend PID: $FRONTEND_PID"
 
 cd ..
 
@@ -148,7 +256,7 @@ cd ..
 echo -e "${YELLOW}⏳ Waiting for application services to be ready...${NC}"
 sleep 8
 
-# Check if backend is responding with more attempts
+# Check if backend is responding
 backend_ready=false
 for i in {1..10}; do
     if curl -s http://localhost:8000/health >/dev/null 2>&1 || nc -z localhost 8000 2>/dev/null; then
@@ -164,38 +272,57 @@ if [ "$backend_ready" = false ]; then
     echo -e "${BLUE}📊 Check backend logs: tail -f /tmp/backend.log${NC}"
 fi
 
-# Check if frontend is responding with more attempts
-frontend_ready=false
-for i in {1..10}; do
-    if nc -z localhost 5173 2>/dev/null; then
-        echo -e "${GREEN}✅ Frontend is ready!${NC}"
-        frontend_ready=true
-        break
-    fi
-    sleep 2
-done
+# Check frontend only if not in minimal mode
+if [ "$MINIMAL_MODE" = false ]; then
+    frontend_ready=false
+    for i in {1..10}; do
+        if nc -z localhost 5173 2>/dev/null; then
+            echo -e "${GREEN}✅ Frontend is ready!${NC}"
+            frontend_ready=true
+            break
+        fi
+        sleep 2
+    done
 
-if [ "$frontend_ready" = false ]; then
-    echo -e "${YELLOW}⚠️  Frontend readiness check failed, but it might still be starting...${NC}"
-    echo -e "${BLUE}📊 Check frontend logs: tail -f /tmp/frontend.log${NC}"
+    if [ "$frontend_ready" = false ]; then
+        echo -e "${YELLOW}⚠️  Frontend readiness check failed, but it might still be starting...${NC}"
+        echo -e "${BLUE}📊 Check frontend logs: tail -f /tmp/frontend.log${NC}"
+    fi
 fi
+
+# Final resource check
+echo ""
+check_resources
 
 echo ""
 echo -e "${GREEN}🎉 QC Standards App startup completed!${NC}"
 echo "=================================================="
 echo -e "${BLUE}🌐 Service URLs:${NC}"
-echo "   Frontend:     http://localhost:5173"
+if [ "$MINIMAL_MODE" = false ]; then
+    echo "   Frontend:     http://localhost:5173"
+fi
 echo "   Backend API:  http://localhost:8000"
 echo "   API Docs:     http://localhost:8000/api/docs"
 echo ""
+echo -e "${BLUE}🔐 Default Admin Credentials:${NC}"
+echo "   Username:     admin"
+echo "   Password:     admin"
+echo ""
 echo -e "${BLUE}📊 Monitor logs:${NC}"
 echo "   Backend:      tail -f /tmp/backend.log"
-echo "   Frontend:     tail -f /tmp/frontend.log"
+if [ "$MINIMAL_MODE" = false ]; then
+    echo "   Frontend:     tail -f /tmp/frontend.log"
+fi
 echo "   All services: docker-compose -f docker-compose.dev.yml logs -f"
 echo ""
 echo -e "${BLUE}🛑 To stop services:${NC}"
 echo "   Quick stop:   docker-compose -f docker-compose.dev.yml down"
 echo "   Kill all:     lsof -ti:8000,5173 | xargs kill -9"
+echo ""
+echo -e "${BLUE}🧹 Advanced options:${NC}"
+echo "   Deep clean:   start --clean"
+echo "   Minimal mode: start --minimal"
+echo "   Force restart: start --force"
 echo ""
 echo -e "${GREEN}✨ Access your app through the forwarded ports in VS Code!${NC}"
 echo -e "${YELLOW}💡 If services didn't start, check the logs above and try again.${NC}"
