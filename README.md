@@ -114,6 +114,19 @@ Once started, access the application at:
 - **🐘 Database**: postgresql://postgres:password@localhost:5432/qc_standards
 - **🔴 Redis**: redis://localhost:6379
 
+## 🔐 Default Login Credentials
+
+For development and testing purposes, a default admin account is created automatically:
+
+- **Username**: `admin`
+- **Password**: `admin`
+
+You can also login using email:
+- **Email**: `admin@example.com`
+- **Password**: `admin`
+
+⚠️ **IMPORTANT**: Change these credentials immediately in production environments!
+
 ## 🛠️ Available Commands
 
 ### In Codespaces Terminal:
