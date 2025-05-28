@@ -16,7 +16,7 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
     password: '',
   });
 
@@ -32,8 +32,8 @@ const LoginPage = () => {
     e.preventDefault();
     setError('');
 
-    if (!formData.email || !formData.password) {
-      setError('Please enter your email and password');
+    if (!formData.username || !formData.password) {
+      setError('Please enter your username/email and password');
       return;
     }
 
@@ -42,7 +42,7 @@ const LoginPage = () => {
     try {
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
       const response = await axios.post(`${apiUrl}/auth/login`, {
-        username: formData.email, // OAuth2 expects username (even though we use email)
+        username: formData.username, // Can be either username or email
         password: formData.password,
       }, {
         headers: {
@@ -85,11 +85,12 @@ const LoginPage = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <TextField
-              label="Email Address"
-              type="email"
-              name="email"
-              value={formData.email}
+              label="Username or Email"
+              type="text"
+              name="username"
+              value={formData.username}
               onChange={handleChange}
+              placeholder="Enter username or email"
               required
               autoFocus
             />
@@ -102,6 +103,12 @@ const LoginPage = () => {
               onChange={handleChange}
               required
             />
+
+            <div className="text-sm text-gray-600 bg-gray-100 p-3 rounded">
+              <strong>Default admin credentials:</strong><br />
+              Username: <code>admin</code><br />
+              Password: <code>admin</code>
+            </div>
 
             <Button
               type="submit"
