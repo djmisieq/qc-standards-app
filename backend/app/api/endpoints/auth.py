@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlmodel import Session
+from sqlmodel import Session, or_
 from datetime import timedelta
 
 from app.core.security import create_access_token
@@ -13,12 +13,20 @@ router = APIRouter()
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     """
     OAuth2 compatible token login, get an access token for future requests
+    Accepts either email or username for login
     """
-    user = db.query(User).filter(User.email == form_data.username).first()
+    # Try to find user by email OR username
+    user = db.query(User).filter(
+        or_(
+            User.email == form_data.username,
+            User.username == form_data.username
+        )
+    ).first()
+    
     if not user or not user.verify_password(form_data.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail="Incorrect username/email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
@@ -35,11 +43,17 @@ async def register(user_in: UserCreate, db: Session = Depends(get_db)):
     Register a new user
     """
     # Check if user already exists
-    existing_user = db.query(User).filter(User.email == user_in.email).first()
+    existing_user = db.query(User).filter(
+        or_(
+            User.email == user_in.email,
+            User.username == user_in.username
+        )
+    ).first()
+    
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered",
+            detail="Email or username already registered",
         )
     
     # Create new user
