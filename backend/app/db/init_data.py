@@ -13,18 +13,22 @@ logger = logging.getLogger(__name__)
 
 def create_default_admin(session: Session) -> None:
     """Create default admin user if it doesn't exist."""
-    # Check if admin already exists
-    statement = select(User).where(User.email == "admin@qcstandards.com")
+    # Check if admin already exists by username or email
+    statement = select(User).where(
+        (User.email == "admin@qcstandards.com") | 
+        (User.email == "admin") |
+        (User.username == "admin")
+    )
     existing_admin = session.exec(statement).first()
     
     if existing_admin:
         logger.info("Default admin user already exists")
         return
     
-    # Create admin user
+    # Create admin user with simple credentials
     admin_user = User(
         username="admin",
-        email="admin@qcstandards.com",
+        email="admin",  # Use 'admin' as email for simple login
         full_name="System Administrator",
         role=UserRole.ADMIN,
         is_active=True,
@@ -36,7 +40,7 @@ def create_default_admin(session: Session) -> None:
     session.commit()
     
     logger.info("Default admin user created successfully")
-    logger.info("Admin login: email: admin@qcstandards.com, password: admin")
+    logger.info("Admin login: username/email: admin, password: admin")
 
 
 def init_data() -> None:
