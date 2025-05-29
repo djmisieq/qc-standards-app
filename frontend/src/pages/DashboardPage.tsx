@@ -21,10 +21,10 @@ const DashboardPage: React.FC = () => {
         <Card className="hover:shadow-lg transition-shadow">
           <Link to="/templates" className="block h-full">
             <div className="p-4">
-              <div className="flex items-center justify-center h-16 w-16 rounded-md bg-blue-500 text-white mb-4">
+              <div className="flex items-center justify-center h-12 w-12 sm:h-16 sm:w-16 rounded-md bg-blue-500 text-white mb-4">
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
-                  className="h-8 w-8" 
+                  className="h-6 w-6 sm:h-8 sm:w-8" 
                   fill="none" 
                   viewBox="0 0 24 24" 
                   stroke="currentColor"
@@ -48,10 +48,10 @@ const DashboardPage: React.FC = () => {
         <Card className="hover:shadow-lg transition-shadow">
           <Link to="/checklists" className="block h-full">
             <div className="p-4">
-              <div className="flex items-center justify-center h-16 w-16 rounded-md bg-green-500 text-white mb-4">
+              <div className="flex items-center justify-center h-12 w-12 sm:h-16 sm:w-16 rounded-md bg-green-500 text-white mb-4">
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
-                  className="h-8 w-8" 
+                  className="h-6 w-6 sm:h-8 sm:w-8" 
                   fill="none" 
                   viewBox="0 0 24 24" 
                   stroke="currentColor"
@@ -75,10 +75,10 @@ const DashboardPage: React.FC = () => {
         <Card className="hover:shadow-lg transition-shadow">
           <Link to="/profile" className="block h-full">
             <div className="p-4">
-              <div className="flex items-center justify-center h-16 w-16 rounded-md bg-purple-500 text-white mb-4">
+              <div className="flex items-center justify-center h-12 w-12 sm:h-16 sm:w-16 rounded-md bg-purple-500 text-white mb-4">
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
-                  className="h-8 w-8" 
+                  className="h-6 w-6 sm:h-8 sm:w-8" 
                   fill="none" 
                   viewBox="0 0 24 24" 
                   stroke="currentColor"
@@ -103,10 +103,10 @@ const DashboardPage: React.FC = () => {
           <Card className="hover:shadow-lg transition-shadow">
             <Link to="/admin" className="block h-full">
               <div className="p-4">
-                <div className="flex items-center justify-center h-16 w-16 rounded-md bg-red-500 text-white mb-4">
+                <div className="flex items-center justify-center h-12 w-12 sm:h-16 sm:w-16 rounded-md bg-red-500 text-white mb-4">
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
-                    className="h-8 w-8" 
+                    className="h-6 w-6 sm:h-8 sm:w-8" 
                     fill="none" 
                     viewBox="0 0 24 24" 
                     stroke="currentColor"

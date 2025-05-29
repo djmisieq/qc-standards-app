@@ -183,7 +183,7 @@ export default function ChecklistsListPage() {
           </button>
         </div>
         {showFilters && (
-          <div className="mt-4 sm:mt-0 sm:ml-4 flex flex-wrap gap-4">
+          <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:mt-0 sm:ml-4">
             <div>
               <label htmlFor="status-filter" className="sr-only">
                 Status Filter
@@ -246,16 +246,16 @@ export default function ChecklistsListPage() {
                     <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
                       Serial Number
                     </th>
-                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                    <th scope="col" className="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell">
                       Template
                     </th>
                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                       Status
                     </th>
-                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                    <th scope="col" className="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell">
                       Created Date
                     </th>
-                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                    <th scope="col" className="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 md:table-cell">
                       Completed Date
                     </th>
                     <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
@@ -273,21 +273,21 @@ export default function ChecklistsListPage() {
                             {checklist.serial_no}
                           </Link>
                         </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                        <td className="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 sm:table-cell">
                           {template ? `${template.name} (Rev ${template.revision})` : `Template ID: ${checklist.template_id}`}
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                           <StatusBadge status={checklist.status} />
                         </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                        <td className="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 sm:table-cell">
                           {formatDate(checklist.created_at)}
                         </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                        <td className="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 md:table-cell">
                           {checklist.completed_at ? formatDate(checklist.completed_at) : '-'}
                         </td>
                         <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
                           {checklist.status === 'in_progress' && (
-                            <Link to={`/checklists/${checklist.id}/execute`} className="text-primary-600 hover:text-primary-900">
+                            <Link to={`/checklists/${checklist.id}/execute`} className="text-primary-600 hover:text-primary-900 inline-block px-2 py-1 rounded-md hover:bg-gray-100">
                               Continue
                             </Link>
                           )}

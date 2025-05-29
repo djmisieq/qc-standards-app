@@ -303,18 +303,18 @@ export default function ChecklistExecutionPage() {
         <button
           onClick={() => navigateToStep(currentStepIndex - 1)}
           disabled={currentStepIndex === 0}
-          className="inline-flex items-center px-2 py-1 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <ChevronLeftIcon className="h-5 w-5 mr-1" />
           Previous
         </button>
-        <span className="text-sm font-medium">
+        <span className="text-sm font-medium text-center">
           Step {currentStepIndex + 1} of {steps.length}
         </span>
         <button
           onClick={() => navigateToStep(currentStepIndex + 1)}
           disabled={currentStepIndex === steps.length - 1}
-          className="inline-flex items-center px-2 py-1 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Next
           <ChevronRightIcon className="h-5 w-5 ml-1" />

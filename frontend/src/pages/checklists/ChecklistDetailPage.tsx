@@ -131,7 +131,7 @@ export default function ChecklistDetailPage() {
             </div>
           </div>
         </div>
-        <div className="mt-4 flex md:mt-0 md:ml-4 space-x-2">
+        <div className="mt-4 flex flex-wrap gap-2 md:mt-0 md:ml-4">
           <button
             type="button"
             onClick={handleExportPDF}
@@ -224,7 +224,7 @@ export default function ChecklistDetailPage() {
                   <span className="mr-4">
                     {okCount} / {totalResults} steps OK ({okPercentage.toFixed(1)}%)
                   </span>
-                  <div className="w-64 bg-gray-200 rounded-full h-2.5">
+                  <div className="w-full sm:w-64 bg-gray-200 rounded-full h-2.5">
                     <div 
                       className={`h-2.5 rounded-full ${okPercentage === 100 ? 'bg-green-600' : 'bg-yellow-400'}`} 
                       style={{ width: `${okPercentage}%` }}

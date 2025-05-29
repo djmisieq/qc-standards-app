@@ -165,7 +165,7 @@ export default function TemplateDetailPage() {
             </div>
           </div>
         </div>
-        <div className="mt-4 flex md:mt-0 md:ml-4 space-x-2">
+        <div className="mt-4 flex flex-wrap gap-2 md:mt-0 md:ml-4">
           {canEdit() && (
             <Link
               to={`/templates/${template.id}/edit`}
@@ -266,7 +266,7 @@ export default function TemplateDetailPage() {
           </div>
         </div>
 
-        <div className="mt-4 overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+        <div className="mt-4 overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
           <table className="min-w-full divide-y divide-gray-300">
             <thead className="bg-gray-50">
               <tr>
@@ -279,10 +279,10 @@ export default function TemplateDetailPage() {
                 <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                   Category
                 </th>
-                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                <th scope="col" className="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell">
                   Photo
                 </th>
-                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                <th scope="col" className="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 md:table-cell">
                   Std Time
                 </th>
               </tr>
@@ -304,10 +304,10 @@ export default function TemplateDetailPage() {
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                     <StatusBadge status={step.category} />
                   </td>
-                  <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                  <td className="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 sm:table-cell">
                     {step.photo_required ? 'Required' : 'Optional'}
                   </td>
-                  <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                  <td className="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 md:table-cell">
                     {step.std_time}s
                   </td>
                 </tr>
