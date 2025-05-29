@@ -165,7 +165,7 @@ export default function TemplatesListPage() {
           </button>
         </div>
         {showFilters && (
-          <div className="mt-4 sm:mt-0 sm:ml-4 flex flex-wrap gap-4">
+          <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:mt-0 sm:ml-4">
             <div>
               <label htmlFor="status-filter" className="sr-only">
                 Status Filter

@@ -89,18 +89,18 @@ const AdminPage = () => {
           <table className="min-w-full bg-white">
             <thead>
               <tr className="bg-gray-100">
-                <th className="py-2 px-4 text-left">ID</th>
+                <th className="hidden py-2 px-4 text-left sm:table-cell">ID</th>
                 <th className="py-2 px-4 text-left">Name</th>
                 <th className="py-2 px-4 text-left">Email</th>
                 <th className="py-2 px-4 text-left">Admin</th>
-                <th className="py-2 px-4 text-left">Created</th>
+                <th className="hidden py-2 px-4 text-left md:table-cell">Created</th>
                 <th className="py-2 px-4 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
               {users.map(user => (
                 <tr key={user.id} className="border-t">
-                  <td className="py-2 px-4">{user.id}</td>
+                  <td className="hidden py-2 px-4 sm:table-cell">{user.id}</td>
                   <td className="py-2 px-4">{user.name}</td>
                   <td className="py-2 px-4">{user.email}</td>
                   <td className="py-2 px-4">
@@ -108,7 +108,7 @@ const AdminPage = () => {
                       {user.is_admin ? 'Yes' : 'No'}
                     </span>
                   </td>
-                  <td className="py-2 px-4">{new Date(user.created_at).toLocaleDateString()}</td>
+                  <td className="hidden py-2 px-4 md:table-cell">{new Date(user.created_at).toLocaleDateString()}</td>
                   <td className="py-2 px-4">
                     <Button
                       size="small"
@@ -128,7 +128,7 @@ const AdminPage = () => {
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <h2 className="text-xl font-semibold mb-4">System Statistics</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="bg-gray-50 p-4 rounded">
               <p className="text-sm text-gray-600">Total Users</p>
               <p className="text-2xl font-bold">{users.length}</p>

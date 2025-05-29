@@ -94,13 +94,13 @@ const ChecklistStepCard: React.FC<ChecklistStepCardProps> = ({
           <div className="mt-4 border-t border-gray-200 pt-4">
             {canEdit && !result ? (
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <button
                       type="button"
                       onClick={() => handleSaveResult(true)}
                       disabled={isSubmitting}
-                      className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed mr-3"
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed mr-3"
                     >
                       <CheckIcon className="-ml-0.5 mr-2 h-4 w-4" aria-hidden="true" />
                       Mark as OK
@@ -109,7 +109,7 @@ const ChecklistStepCard: React.FC<ChecklistStepCardProps> = ({
                       type="button"
                       onClick={() => handleSaveResult(false)}
                       disabled={isSubmitting}
-                      className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <XMarkIcon className="-ml-0.5 mr-2 h-4 w-4" aria-hidden="true" />
                       Mark as NOK
@@ -118,7 +118,7 @@ const ChecklistStepCard: React.FC<ChecklistStepCardProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowNotes(!showNotes)}
-                    className="text-sm text-gray-600 hover:text-gray-900"
+                    className="text-sm text-gray-600 hover:text-gray-900 sm:ml-4"
                   >
                     {showNotes ? 'Hide notes' : 'Add notes'}
                   </button>
@@ -176,7 +176,7 @@ const ChecklistStepCard: React.FC<ChecklistStepCardProps> = ({
                       ) : (
                         <label
                           htmlFor={`photo-${step.id}`}
-                          className="cursor-pointer inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                          className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                         >
                           <CameraIcon className="-ml-0.5 mr-2 h-4 w-4" aria-hidden="true" />
                           Take Photo
